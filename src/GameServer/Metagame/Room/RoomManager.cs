@@ -33,7 +33,7 @@ namespace GameServer.Metagame.Room
 
             Process.Start(Constants.RoomExePath, availablePort.ToString());
 
-            if (!int.TryParse(maxPlayerCount, out var maxPlayerCountInt)
+            if (!int.TryParse(maxPlayerCount, out var maxPlayerCountInt))
             {
                 maxPlayerCountInt = 8;
             }
