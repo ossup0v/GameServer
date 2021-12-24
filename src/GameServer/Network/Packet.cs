@@ -38,7 +38,8 @@ namespace GameServer.Network
         playerScale,
 
 
-        roomPortToConnect
+        roomPortToConnect,
+        roomList
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -57,7 +58,8 @@ namespace GameServer.Network
     {
         welcomeReceived = 1,
         registerUser,
-        joinGameRoom
+        joinGameRoom,
+        loginUser
     }
 
     public class Packet : IDisposable

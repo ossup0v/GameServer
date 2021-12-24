@@ -125,6 +125,15 @@ namespace GameServer.Network
             }
         }
 
+        public static int FreeTcpPort()
+        {
+            TcpListener l = new TcpListener(IPAddress.Loopback, 0);
+            l.Start();
+            int port = ((IPEndPoint)l.LocalEndpoint).Port;
+            l.Stop();
+            return port;
+        }
+
         private static void InitializeServerData()
         {
             packetHandlers = new Dictionary<int, PacketHandler>()
@@ -132,6 +141,7 @@ namespace GameServer.Network
                 { (int)ClientToServer.welcomeReceived, ServerHandler.WelcomeReceived },
                 { (int)ClientToServer.registerUser, ServerHandler.RegisterUser },
                 { (int)ClientToServer.joinGameRoom, ServerHandler.JoinGameRoom},
+                { (int)ClientToServer.loginUser, ServerHandler.LoginUser},
             };
 
             Console.WriteLine("Initialized packets.");

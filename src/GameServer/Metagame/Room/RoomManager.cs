@@ -1,14 +1,19 @@
 ﻿using GameServer.Common;
+using GameServer.Network;
 using System.Diagnostics;
 
 namespace GameServer.Metagame.Room
 {
     public class RoomManager
     {
-        private List<int> _availableProts = new List<int>() { 26950 };
+        public IReadOnlyDictionary<Guid, Room> Rooms => _rooms;
         private Dictionary<Guid, Room> _rooms = new Dictionary<Guid, Room>();
         public static RoomManager Instance = new RoomManager();
-        private RoomManager() { }
+        private RoomManager() 
+        {
+            CreateRoom(new User { Data = new UserData { Username = "test1" } });
+            CreateRoom(new User { Data = new UserData { Username = "test2" } });
+        }
 
         public Room GetRoom(Guid guid)
         {
@@ -23,25 +28,23 @@ namespace GameServer.Metagame.Room
         public Room? CreateOrGetRoom(User creator)
         {
             var existsRoom = GetFirstAvailableToJoin();
-            
+
             if (existsRoom != null)
             {
                 return existsRoom;
             }
 
+            return CreateRoom(creator);
+        }
+
+        public Room CreateRoom(User creator)
+        {
             var roomId = Guid.NewGuid();
 
-            var roomPort = _availableProts.FirstOrDefault();
-            if (roomPort == 0)
-            {
-                Console.WriteLine("Can't create room! have no available ports!");
-                return null;
-            }
+            var availablePort = Server.FreeTcpPort();
 
-            _availableProts.Remove(roomPort);
-
-            Process.Start(Constants.RoomExePath, roomPort.ToString());
-            var newRoom = new Room(new RoomData { Creator = creator, Title = "test room", Port = roomPort });
+            Process.Start(Constants.RoomExePath, availablePort.ToString());
+            var newRoom = new Room(new RoomData { Creator = creator, Title = "test room", Port = availablePort, Mode = "poka ne sdelal", RoomId = roomId });
             _rooms.Add(roomId, newRoom);
 
             return newRoom;

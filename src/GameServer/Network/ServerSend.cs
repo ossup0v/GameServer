@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameServer.Metagame.Room;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -84,6 +85,27 @@ namespace GameServer.Network
             {
                 packet.Write("127.0.0.1");
                 packet.Write(port);
+
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public static void RoomList(Guid toClient, IReadOnlyDictionary<Guid, Room> rooms)
+        {
+            using (Packet packet = new Packet(ServerPackets.roomList))
+            {
+                packet.Write(rooms.Count);
+
+                foreach (var room in rooms.Values)
+                {
+                    packet.Write(room.Data.RoomId);
+                    packet.Write(room.Data.Port);
+                    packet.Write(room.Data.Creator?.Data?.Username ?? "kto ento");
+                    packet.Write(room.Data.Mode);
+                    packet.Write(room.Data.Title);
+                    packet.Write(room.Data.MaxUserCount);
+                    packet.Write(room.Data.Users.Count);
+                }
 
                 SendTCPData(toClient, packet);
             }

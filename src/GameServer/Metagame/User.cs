@@ -7,16 +7,15 @@ namespace GameServer.Metagame
 {
     public class User
     {
-        private UserData _data;
         private readonly IUserRepository _userRepository = new TempUserRepository();
 
-        public UserData Data => _data;
+        public UserData Data;
 
         public User() { }
 
         public User(UserData data)
         {
-            _data = data;
+            Data = data;
         }
 
         public void GetInventory()
@@ -64,7 +63,7 @@ namespace GameServer.Metagame
         public bool Register(string login, string password, string username, Guid id)
         {
             var newUser = new UserDTO { Login = login, Password = password, Username = username, Id = id };
-            _data = new UserData { Login = login, Password = password, Username = username, Id = id };
+            Data = new UserData { Login = login, Password = password, Username = username, Id = id };
 
             _userRepository.AddUser(newUser);
             return true;
@@ -73,6 +72,7 @@ namespace GameServer.Metagame
         public async Task<bool> Login(string login, string password, Guid id)
         {
             var existsUser = await _userRepository.GetUserByLogin(login);
+
             if (existsUser == null)
             {
                 return false;
@@ -80,8 +80,8 @@ namespace GameServer.Metagame
 
             if (existsUser.Password == password)
             {
-                _data = new UserData { Password = existsUser.Password, Id = id, Login = existsUser.Login, Username = existsUser.Username };
-                Server.GetClient(id).User = new User(_data);
+                Data = new UserData { Password = existsUser.Password, Id = id, Login = existsUser.Login, Username = existsUser.Username };
+                Server.GetClient(id).User = this;
                 return true;
             }
 
@@ -95,5 +95,6 @@ namespace GameServer.Metagame
         public string Username { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+        public bool IsUserLogged { get; set; }
     }
 }

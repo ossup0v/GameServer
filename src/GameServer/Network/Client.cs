@@ -1,5 +1,6 @@
 ﻿using GameServer.Common;
 using GameServer.Metagame;
+using GameServer.Metagame.Room;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -146,6 +147,11 @@ namespace GameServer.Network
             }
         }
 
+        public void SendData()
+        {
+            ServerSend.RoomList(id, RoomManager.Instance.Rooms);
+        }
+
         public void CreateUser()
         {
             Console.WriteLine("User with id " + id + " created");
@@ -186,34 +192,12 @@ namespace GameServer.Network
             }
         }
 
-        public void SendIntoGame(string playerName)
-        {
-            Console.WriteLine("Send into game");
-
-        }
-
-        //private void StartRoomProcess()
-        //{
-        //    Process p = new Process();
-        //    p.StartInfo.FileName = command;
-        //    p.StartInfo.Arguments = arguments;
-        //    p.StartInfo.RedirectStandardError = true;
-        //    p.StartInfo.RedirectStandardOutput = true;
-        //    p.StartInfo.CreateNoWindow = true;
-        //    p.StartInfo.WorkingDirectory = Application.dataPath + "/..";
-        //    p.StartInfo.UseShellExecute = false;
-        //    p.Start();
-        //}
-
         private void Disconnect()
         {
             Console.WriteLine($"{tcp.Socket.Client.RemoteEndPoint} was disconnected");
 
-                User = null;
-
+            User = null;
             tcp.Dispose();
-
-            //ServerSend.PlayerDisconnected(id);
         }
     }
 }

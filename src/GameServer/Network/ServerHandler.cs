@@ -16,6 +16,7 @@ namespace GameServer.Network
                 Console.WriteLine($"Player (ID: {fromClient}) has assumed the wrong client ID ({clientIdCheck})!");
             }
             Server.clients[fromClient].CreateUser();
+            Server.clients[fromClient].SendData();
         }
 
         public static void RegisterUser(Guid fromClient, Packet packet)
@@ -46,8 +47,8 @@ namespace GameServer.Network
         public static void JoinGameRoom(Guid fromClient, Packet packet)
         {
             Console.WriteLine($"user {fromClient} joined to game!");
-
-            GameManager.Instance.JoinGameRoom(Server.GetClient(fromClient).User);
+            var roomId = packet.ReadGuid();
+            GameManager.Instance.JoinGameRoom(roomId, Server.GetClient(fromClient).User);
         }
     }
 }

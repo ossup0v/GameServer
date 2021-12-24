@@ -8,10 +8,17 @@ namespace GameServer.Metagame
         public static GameManager Instance = new GameManager();
         private GameManager() { }
 
-        public void JoinGameRoom(User user)
+        public void JoinGameRoom(Guid roomId, User user)
+        {
+            var room = RoomManager.Instance.GetRoom(roomId);
+            ServerSend.RoomPortToConnect(user.Data.Id, room.Data.Port);
+        }
+
+        public void CreateRoom(User user)
         {
             var room = RoomManager.Instance.CreateOrGetRoom(user);
-            Thread.Sleep((int)TimeSpan.FromSeconds(2).TotalMilliseconds);
+#warning не, нужно пофиксить это, а то полное г......вно...
+            Thread.Sleep((int)TimeSpan.FromSeconds(0.25).TotalMilliseconds);
             ServerSend.RoomPortToConnect(user.Data.Id, room.Data.Port);
         }
     }
