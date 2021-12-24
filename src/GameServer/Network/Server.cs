@@ -142,6 +142,7 @@ namespace GameServer.Network
                 { (int)ClientToServer.registerUser, ServerHandler.RegisterUser },
                 { (int)ClientToServer.joinGameRoom, ServerHandler.JoinGameRoom},
                 { (int)ClientToServer.loginUser, ServerHandler.LoginUser},
+                { (int)ClientToServer.createGameRoom, ServerHandler.CreateGameRoom},
             };
 
             Console.WriteLine("Initialized packets.");

@@ -3,7 +3,7 @@
     public class RoomData
     {
         public Guid RoomId;
-        public int MaxUserCount;
+        public int MaxPlayerCount;
         public string Mode;
 
         public int Port { get; set; }

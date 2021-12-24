@@ -28,7 +28,7 @@ namespace GameServer.Metagame.Room
 
         public void Join(User user)
         {
-            //add here user to room
+            Data.Users.Add(user);
         }
 
         public void Stop()

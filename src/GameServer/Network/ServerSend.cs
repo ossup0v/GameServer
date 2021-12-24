@@ -103,7 +103,7 @@ namespace GameServer.Network
                     packet.Write(room.Data.Creator?.Data?.Username ?? "kto ento");
                     packet.Write(room.Data.Mode);
                     packet.Write(room.Data.Title);
-                    packet.Write(room.Data.MaxUserCount);
+                    packet.Write(room.Data.MaxPlayerCount);
                     packet.Write(room.Data.Users.Count);
                 }
 

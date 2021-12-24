@@ -50,5 +50,16 @@ namespace GameServer.Network
             var roomId = packet.ReadGuid();
             GameManager.Instance.JoinGameRoom(roomId, Server.GetClient(fromClient).User);
         }
+
+        public static void CreateGameRoom(Guid fromClient, Packet packet)
+        {
+            Console.WriteLine($"user {fromClient} creating game room!");
+
+            var mode = packet.ReadString();
+            var title = packet.ReadString();
+            var maxPlayerCount = packet.ReadString();
+
+            GameManager.Instance.CreateRoom(Server.GetClient(fromClient).User, mode, title, maxPlayerCount);
+        }
     }
 }

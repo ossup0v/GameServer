@@ -11,8 +11,8 @@ namespace GameServer.Metagame.Room
         public static RoomManager Instance = new RoomManager();
         private RoomManager() 
         {
-            CreateRoom(new User { Data = new UserData { Username = "test1" } });
-            CreateRoom(new User { Data = new UserData { Username = "test2" } });
+            CreateRoom(new User { Data = new UserData { Username = "test1" } }, "mode", "title", "16");
+            CreateRoom(new User { Data = new UserData { Username = "test2" } }, "mode", "title", "16");
         }
 
         public Room GetRoom(Guid guid)
@@ -25,26 +25,28 @@ namespace GameServer.Metagame.Room
             return _rooms.Values.FirstOrDefault(x => x?.IsAvailableToJoin ?? false);
         }
 
-        public Room? CreateOrGetRoom(User creator)
-        {
-            var existsRoom = GetFirstAvailableToJoin();
-
-            if (existsRoom != null)
-            {
-                return existsRoom;
-            }
-
-            return CreateRoom(creator);
-        }
-
-        public Room CreateRoom(User creator)
+        public Room CreateRoom(User creator, string mode, string title, string maxPlayerCount)
         {
             var roomId = Guid.NewGuid();
 
             var availablePort = Server.FreeTcpPort();
 
             Process.Start(Constants.RoomExePath, availablePort.ToString());
-            var newRoom = new Room(new RoomData { Creator = creator, Title = "test room", Port = availablePort, Mode = "poka ne sdelal", RoomId = roomId });
+
+            if (!int.TryParse(maxPlayerCount, out var maxPlayerCountInt)
+            {
+                maxPlayerCountInt = 8;
+            }
+
+            var newRoom = new Room(new RoomData 
+            { 
+                RoomId = roomId ,
+                Creator = creator, 
+                Mode = mode, 
+                Title = title,
+                MaxPlayerCount = maxPlayerCountInt,
+                Port = availablePort, 
+            });
             _rooms.Add(roomId, newRoom);
 
             return newRoom;
