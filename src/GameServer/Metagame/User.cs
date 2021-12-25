@@ -7,11 +7,14 @@ namespace GameServer.Metagame
 {
     public class User
     {
-        private readonly IUserRepository _userRepository = new TempUserRepository();
+        private readonly IUserRepository _userRepository;
 
         public UserData Data;
 
-        public User() { }
+        public User(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
 
         public User(UserData data)
         {

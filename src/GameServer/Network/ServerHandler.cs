@@ -21,27 +21,27 @@ namespace GameServer.Network
 
         public static void RegisterUser(Guid fromClient, Packet packet)
         {
+            var packetId = packet.ReadGuid();
             var login = packet.ReadString();
             var password = packet.ReadString();
             var username = packet.ReadString();
 
             Console.WriteLine($"User registered with {login}: {password}");
-            bool success = Server.clients[fromClient].User.Register(login, password, username, fromClient);
+            bool result = Server.clients[fromClient].User.Register(login, password, username, fromClient);
 
-            if (!success)//retry here!
-                return;
+            ServerSend.RegisterResult(fromClient, packetId, result);
         }
 
         public static async void LoginUser(Guid fromClient, Packet packet)
         {
+            var packetId = packet.ReadGuid();
             var login = packet.ReadString();
             var password = packet.ReadString();
 
             Console.WriteLine($"User registered with {login}: {password}");
-            bool success = await Server.clients[fromClient].User.Login(login, password, fromClient);
+            bool result = await Server.clients[fromClient].User.Login(login, password, fromClient);
 
-            if (!success)//retry here!
-                return;
+            ServerSend.LoginResult(fromClient, packetId, result);
         }
 
         public static void JoinGameRoom(Guid fromClient, Packet packet)

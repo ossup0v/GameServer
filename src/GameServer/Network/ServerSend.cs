@@ -78,12 +78,44 @@ namespace GameServer.Network
             }
         }
 
+        public static void RegisterResult(Guid toClient, Guid packetId, bool result)
+        {
+            using (Packet packet = new Packet(ServerPackets.response))
+            {
+                packet.Write(packetId);
+                packet.Write(result);
+
+                if (!result)
+                    packet.Write("Can't register user. login already used.");
+
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public static void LoginResult(Guid toClient, Guid packetId, bool result)
+        {
+            using (Packet packet = new Packet(ServerPackets.response))
+            {
+                packet.Write(packetId);
+                packet.Write(result);
+
+                if (!result)
+                    packet.Write("Can't login user. wrong password or login.");
+
+                SendTCPData(toClient, packet);
+            }
+        }
+
         public static void RoomPortToConnect(Guid toClient, int port)
         {
 
             using (Packet packet = new Packet(ServerPackets.roomPortToConnect))
             {
+#if DEBUG
                 packet.Write("127.0.0.1");
+#else
+                packet.Write("3.66.29.169");
+#endif
                 packet.Write(port);
 
                 SendTCPData(toClient, packet);

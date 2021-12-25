@@ -1,4 +1,5 @@
 ﻿using GameServer.Common;
+using GameServer.DAL.Mongo;
 using GameServer.Metagame;
 using GameServer.Metagame.Room;
 using System;
@@ -155,7 +156,7 @@ namespace GameServer.Network
         public void CreateUser()
         {
             Console.WriteLine("User with id " + id + " created");
-            User = new User();
+            User = new User(TempUserRepository.Instance);
         }
 
         public class UDP

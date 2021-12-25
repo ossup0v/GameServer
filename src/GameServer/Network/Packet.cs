@@ -39,7 +39,10 @@ namespace GameServer.Network
 
 
         roomPortToConnect,
-        roomList
+        roomList,
+
+
+        response
     }
 
     /// <summary>Sent from client to server.</summary>

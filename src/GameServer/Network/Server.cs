@@ -125,15 +125,6 @@ namespace GameServer.Network
             }
         }
 
-        public static int FreeTcpPort()
-        {
-            TcpListener l = new TcpListener(IPAddress.Loopback, 0);
-            l.Start();
-            int port = ((IPEndPoint)l.LocalEndpoint).Port;
-            l.Stop();
-            return port;
-        }
-
         private static void InitializeServerData()
         {
             packetHandlers = new Dictionary<int, PacketHandler>()
