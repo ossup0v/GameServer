@@ -11,11 +11,8 @@ namespace GameServer.Metagame.Room
         public IReadOnlyDictionary<Guid, Room> Rooms => _rooms;
         private Dictionary<Guid, Room> _rooms = new Dictionary<Guid, Room>();
         public static RoomManager Instance = new RoomManager();
-        private RoomManager() 
-        {
-            CreateRoom(new User(TempUserRepository.Instance) { Data = new UserData { Username = "test1" } }, "mode", "title", "16");
-            CreateRoom(new User(TempUserRepository.Instance) { Data = new UserData { Username = "test2" } }, "mode", "title", "16");
-        }
+
+        private RoomManager() { }
 
         public Room GetRoom(Guid guid)
         {
