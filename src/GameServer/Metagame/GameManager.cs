@@ -5,6 +5,7 @@ namespace GameServer.Metagame
 {
     public class GameManager
     {
+#warning delete this
         public static GameManager Instance = new GameManager();
         private GameManager() { }
 
