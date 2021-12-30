@@ -19,7 +19,9 @@
 
         public static ApiResult Failed(string message = "") => new ApiResult(ApiResultStatus.Failed, message);
         public static ApiResult Error(string message = "") => new ApiResult(ApiResultStatus.Error, message);
-        public static ApiResult Ok() => new ApiResult(ApiResultStatus.Ok);
+        public static ApiResult Ok { get { return new ApiResult(ApiResultStatus.Ok); } }
+
+        public bool Success => Status == ApiResultStatus.Ok;
     }
 
 

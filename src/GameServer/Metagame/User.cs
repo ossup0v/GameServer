@@ -1,4 +1,5 @@
-﻿using GameServer.DAL;
+﻿using GameServer.Common;
+using GameServer.DAL;
 using GameServer.DAL.DTOs;
 using GameServer.DAL.Mongo;
 using GameServer.Network;
@@ -8,87 +9,83 @@ namespace GameServer.Metagame
     public class User
     {
         private readonly IUserRepository _userRepository;
-
+        public readonly Guid UserId;
+        private readonly IClientHolder _clientHolder;
         public UserData Data;
 
-        public User(IUserRepository userRepository)
+        public User(Guid userId, IUserRepository userRepository, IClientHolder clientHolder)
         {
+            UserId = userId;
             _userRepository = userRepository;
-        }
-
-        public User(UserData data)
-        {
-            Data = data;
+            _clientHolder = clientHolder;
         }
 
         public void GetInventory()
-        { 
-        
+        {
+
         }
 
-        public async Task<UserData> AutorizeUser(string login, string password)
+        public async Task<ApiResult<UserData>> AutorizeUser(string login, string password)
         {
             var existsUser = await _userRepository.GetUserByLogin(login);
 
-            var user = default(UserData);
             if (existsUser.Password == password)
             {
-                user = new UserData
+                var user = new UserData
                 {
                     Password = existsUser.Password,
                     Id = existsUser.Id,
                     Username = existsUser.Username,
                     Login = existsUser.Login,
                 };
+
+                return ApiResult<UserData>.OK(user);
             }
             else
             {
-                user = null;
+                return ApiResult<UserData>.Failed("Can't login user");
             }
-
-            return user;
         }
 
-        public async Task<bool> TryJoin(string login, string password)
+        public async Task<ApiResult> TryJoin(string login, string password)
         {
             var user = await AutorizeUser(login, password);
             if (user != null)
             {
-
-                return true;
+                return ApiResult.Ok;
             }
             else
             {
-                return false;
+                return ApiResult.Failed("Can't login user");
             }
         }
 
-        public bool Register(string login, string password, string username, Guid id)
+        public Task<ApiResult> Register(string login, string password, string username, Guid id)
         {
             var newUser = new UserDTO { Login = login, Password = password, Username = username, Id = id };
             Data = new UserData { Login = login, Password = password, Username = username, Id = id };
 
             _userRepository.AddUser(newUser);
-            return true;
+            return Task.FromResult(ApiResult.Ok);
         }
 
-        public async Task<bool> Login(string login, string password, Guid id)
+        public async Task<ApiResult> Login(string login, string password, Guid id)
         {
             var existsUser = await _userRepository.GetUserByLogin(login);
 
             if (existsUser == null)
             {
-                return false;
+                return ApiResult.Failed($"Can't find user with login {login}");
             }
 
             if (existsUser.Password == password)
             {
                 Data = new UserData { Password = existsUser.Password, Id = id, Login = existsUser.Login, Username = existsUser.Username };
-                Server.GetClient(id).User = this;
-                return true;
+                _clientHolder.GetClient(id).User = this;
+                return ApiResult.Ok;
             }
 
-            return false;
+            return ApiResult.Failed($"User with login {login}, not have password {password}");
         }
     }
 

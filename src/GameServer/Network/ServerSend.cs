@@ -1,72 +1,78 @@
-﻿using GameServer.Metagame.Room;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameServer.Metagame.GameRoom;
 
 namespace GameServer.Network
 {
-    public class ServerSend
+    public class ServerSend : IServerSend
     {
+        private readonly IClientHolder _clientHolder;
+        private readonly IDataSender _dataSender;
+        private readonly IServiceProvider _serviceProvider;
+
+        public ServerSend(IClientHolder clientHolder, IDataSender dataSender, IServiceProvider serviceProvider)
+        {
+            _clientHolder = clientHolder;
+            _dataSender = dataSender;
+            _serviceProvider = serviceProvider;
+        }
+
         #region SendBase
-        private static void SendTCPData(Guid toClient, Packet packet)
+        private void SendTCPData(Guid toClient, Packet packet)
         {
             packet.WriteLength();
-            Server.clients[toClient].tcp.SendData(packet);
+            _dataSender.SendDataTCP(toClient, packet);
         }
 
-        private static void SendUDPData(Guid toClient, Packet packet)
+        private void SendUDPData(Guid toClient, Packet packet)
         {
             packet.WriteLength();
-            Server.clients[toClient].udp.SendData(packet);
+            _dataSender.SendDataUDP(toClient, packet);
         }
 
-        private static void SendTCPDataToAll(Packet packet)
+        private void SendTCPDataToAll(Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in Server.clients.Values)
+            foreach (var client in _clientHolder.GetAllClients())
             {
-                client.tcp.SendData(packet);
+                _dataSender.SendDataTCP(client.Id, packet);
             }
         }
 
-        private static void SendTCPDataToAll(Guid exceptClient, Packet packet)
+        private void SendTCPDataToAll(Guid exceptClient, Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in Server.clients.Values)
+            foreach (var client in _clientHolder.GetAllClients())
             {
-                if (client.id != exceptClient)
+                if (client.Id != exceptClient)
                 {
-                    client.tcp.SendData(packet);
+                    _dataSender.SendDataTCP(client.Id, packet);
                 }
             }
         }
 
-        private static void SendUDPDataToAll(Packet packet)
+        private void SendUDPDataToAll(Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in Server.clients.Values)
+            foreach (var client in _clientHolder.GetAllClients())
             {
-                client.udp.SendData(packet);
+                _dataSender.SendDataUDP(client.Id, packet);
             }
         }
 
-        private static void SendUDPDataToAll(Guid exceptClient, Packet packet)
+        private void SendUDPDataToAll(Guid exceptClient, Packet packet)
         {
             packet.WriteLength();
 
-            foreach (var client in Server.clients.Values)
+            foreach (var client in _clientHolder.GetAllClients())
             {
-                if (client.id != exceptClient)
+                if (client.Id != exceptClient)
                 {
-                    client.udp.SendData(packet);
+                    _dataSender.SendDataUDP(client.Id, packet);
                 }
             }
         }
         #endregion
 
-        public static void Welcome(Guid toClient, string msg)
+        public void Welcome(Guid toClient, string msg)
         {
             using (Packet packet = new Packet(ServerPackets.welcome))
             {
@@ -78,7 +84,7 @@ namespace GameServer.Network
             }
         }
 
-        public static void RegisterResult(Guid toClient, Guid packetId, bool result)
+        public void RegisterResult(Guid toClient, Guid packetId, bool result)
         {
             using (Packet packet = new Packet(ServerPackets.response))
             {
@@ -92,7 +98,7 @@ namespace GameServer.Network
             }
         }
 
-        public static void LoginResult(Guid toClient, Guid packetId, bool result)
+        public void LoginResult(Guid toClient, Guid packetId, bool result)
         {
             using (Packet packet = new Packet(ServerPackets.response))
             {
@@ -106,7 +112,7 @@ namespace GameServer.Network
             }
         }
 
-        public static void RoomPortToConnect(Guid toClient, int port)
+        public void RoomPortToConnect(Guid toClient, int port)
         {
 
             using (Packet packet = new Packet(ServerPackets.roomPortToConnect))
@@ -122,7 +128,7 @@ namespace GameServer.Network
             }
         }
 
-        public static void RoomList(Guid toClient, IReadOnlyDictionary<Guid, Room> rooms)
+        public void RoomList(Guid toClient, IReadOnlyDictionary<Guid, GameRoom> rooms)
         {
             using (Packet packet = new Packet(ServerPackets.roomList))
             {

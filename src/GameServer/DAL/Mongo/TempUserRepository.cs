@@ -4,11 +4,6 @@ namespace GameServer.DAL.Mongo
 {
     internal class TempUserRepository : IUserRepository
     {
-        private TempUserRepository() { }
-
-#warning delete this
-        public readonly static TempUserRepository Instance = new TempUserRepository();
-
         private readonly Dictionary<Guid, UserDTO> _users = new Dictionary<Guid,UserDTO>();
 
         public Task AddUser(UserDTO user)

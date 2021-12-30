@@ -1,30 +1,31 @@
 ﻿using GameServer.Common;
-using GameServer.DAL.Mongo;
-using GameServer.Network;
+using GameServer.Configs;
 using System.Diagnostics;
 
-namespace GameServer.Metagame.Room
+namespace GameServer.Metagame.GameRoom
 {
-    public class RoomManager
+    public class RoomManager : IRoomManager
     {
         private List<int> availablePorts = new List<int>() { 26952, 26953, 26955, 26956, 26957, 26958, 26959, 26960 };
-        public IReadOnlyDictionary<Guid, Room> Rooms => _rooms;
-        private Dictionary<Guid, Room> _rooms = new Dictionary<Guid, Room>();
-        public static RoomManager Instance = new RoomManager();
+        public IReadOnlyDictionary<Guid, GameRoom> Rooms => _rooms;
+        private Dictionary<Guid, GameRoom> _rooms = new Dictionary<Guid, GameRoom>();
 
-        private RoomManager() { }
+        public RoomManager(RoomManagerConfig roomManagerConfig)
+        {
+            availablePorts = roomManagerConfig.AvailablePorts;
+        }
 
-        public Room GetRoom(Guid guid)
+        public GameRoom GetRoom(Guid guid)
         {
             return _rooms[guid];
         }
 
-        public Room? GetFirstAvailableToJoin()
+        public GameRoom? GetFirstAvailableToJoin()
         {
             return _rooms.Values.FirstOrDefault(x => x?.IsAvailableToJoin ?? false);
         }
 
-        public Room CreateRoom(User creator, string mode, string title, string maxPlayerCount)
+        public GameRoom CreateRoom(User creator, string mode, string title, int maxPlayerCount)
         {
             var roomId = Guid.NewGuid();
 
@@ -41,18 +42,13 @@ namespace GameServer.Metagame.Room
             Process.Start(Constants.RoomExePath, availablePort.ToString());
             Console.WriteLine($"Room lauched on {availablePort} port!");
 
-            if (!int.TryParse(maxPlayerCount, out var maxPlayerCountInt))
-            {
-                maxPlayerCountInt = 8;
-            }
-
-            var newRoom = new Room(new RoomData 
+            var newRoom = new GameRoom(new RoomData 
             { 
                 RoomId = roomId ,
                 Creator = creator, 
                 Mode = mode, 
                 Title = title,
-                MaxPlayerCount = maxPlayerCountInt,
+                MaxPlayerCount = maxPlayerCount,
                 Port = availablePort, 
             });
 

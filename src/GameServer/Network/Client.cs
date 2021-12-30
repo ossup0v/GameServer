@@ -1,7 +1,9 @@
 ﻿using GameServer.Common;
+using GameServer.DAL;
 using GameServer.DAL.Mongo;
 using GameServer.Metagame;
-using GameServer.Metagame.Room;
+using GameServer.Metagame.GameRoom;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,46 +19,49 @@ namespace GameServer.Network
     {
         public static int dataBufferSize = 4096;
 
-        public Guid id;
+        public Guid Id;
+        private readonly IServiceProvider _serviceProvider;
         public User User;
         public TCP tcp;
         public UDP udp;
 
-        public Client(Guid clientId)
+        public Client(Guid clientId, IServiceProvider serviceProvider)
         {
-            id = clientId;
-            tcp = new TCP(id);
-            udp = new UDP(id);
+            Id = clientId;
+            _serviceProvider = serviceProvider;
+            tcp = new TCP(Id);
+            udp = new UDP(Id);
         }
 
         public class TCP : IDisposable
         {
             public TcpClient Socket;
+            public event Action<Guid, int, Packet> PacketReceived = delegate { };
 
             private readonly Guid _id;
             private NetworkStream stream;
             private Packet receivedData;
             private byte[] receiveBuffer;
+            private Client _client;
 
             public TCP(Guid id)
             {
                 _id = id;
             }
 
-            public void Connect(TcpClient socket)
+            public void Connect(TcpClient socket, Client client)
             {
                 Socket = socket;
                 Socket.ReceiveBufferSize = dataBufferSize;
                 Socket.SendBufferSize = dataBufferSize;
 
                 stream = Socket.GetStream();
+                _client = client;
 
                 receivedData = new Packet();
                 receiveBuffer = new byte[dataBufferSize];
 
                 stream.BeginRead(receiveBuffer, 0, dataBufferSize, ReceiveCallback, null);
-
-                ServerSend.Welcome(_id, "Welcome to the server!");
             }
 
             public void SendData(Packet packet)
@@ -81,7 +86,7 @@ namespace GameServer.Network
                     int byteLength = stream.EndRead(result);
                     if (byteLength <= 0)
                     {
-                        Server.clients[_id].Disconnect();
+                        _client?.Disconnect();
                         return;
                     }
 
@@ -93,7 +98,7 @@ namespace GameServer.Network
                 }
                 catch (Exception ex)
                 {
-                    Server.clients[_id].Disconnect();
+                    _client?.Disconnect();
                     Console.WriteLine($"Error receiving TCP data: {ex}");
                 }
             }
@@ -116,11 +121,12 @@ namespace GameServer.Network
                 while (packetLength > 0 && packetLength <= receivedData.UnreadLength())
                 {
                     byte[] packetBytes = receivedData.ReadBytes(packetLength);
-                        using (Packet packet = new Packet(packetBytes))
-                        {
-                            int packetId = packet.ReadInt();
-                            Server.packetHandlers[packetId](_id, packet);
-                        }
+                    using (Packet packet = new Packet(packetBytes))
+                    {
+                        int packetId = packet.ReadInt();
+
+                        PacketReceived(_id, packetId, packet);
+                    }
 
                     packetLength = 0;
                     if (receivedData.UnreadLength() >= 4)
@@ -148,36 +154,29 @@ namespace GameServer.Network
             }
         }
 
-        public void SendData()
-        {
-            ServerSend.RoomList(id, RoomManager.Instance.Rooms);
-        }
-
         public void CreateUser()
         {
-            Console.WriteLine("User with id " + id + " created");
-            User = new User(TempUserRepository.Instance);
+            Console.WriteLine("User with id " + Id + " created");
+            User = new User(Id, 
+                _serviceProvider.GetRequiredService<IUserRepository>(),
+                _serviceProvider.GetRequiredService<IClientHolder>());
         }
 
         public class UDP
         {
-            public IPEndPoint EndPoint;
+            public IPEndPoint? EndPoint;
+            public event Action<Guid, int, Packet> PacketReceived = delegate { };
 
-            private Guid Id;
+            private readonly Guid _id;
 
             public UDP(Guid id)
             {
-                Id = id;
+                _id = id;
             }
 
             public void Connect(IPEndPoint endPoint)
             {
                 EndPoint = endPoint;
-            }
-
-            public void SendData(Packet packet)
-            {
-                Server.SendUDPData(EndPoint, packet);
             }
 
             public void HandleData(Packet packetData)
@@ -188,7 +187,7 @@ namespace GameServer.Network
                 using (Packet packet = new Packet(packetBytes))
                 {
                     int packetId = packet.ReadInt();
-                    Server.packetHandlers[packetId](Id, packet);
+                    PacketReceived(_id, packetId, packet);
                 }
             }
         }
