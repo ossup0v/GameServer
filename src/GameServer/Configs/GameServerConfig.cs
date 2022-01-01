@@ -3,9 +3,12 @@
     public class GameServerConfig
     {
         public const string SectionName = "GameServerConfig";
-     
-        public int Port;
 
-        public int MaxPlayers;
+        public int ClientPort;
+
+        public int GameRoomPort;
+
+        public int MaxPlayerAmount;
+        public int MaxGameRoomAmount;
     }
 }

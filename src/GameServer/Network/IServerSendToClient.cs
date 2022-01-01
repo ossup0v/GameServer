@@ -1,14 +1,13 @@
-﻿using GameServer.Common;
-using GameServer.Metagame.GameRoom;
+﻿using GameServer.Metagame.GameRooms;
 
 namespace GameServer.Network
 {
-    public interface IServerSend
+    public interface IServerSendToClient
     {
         void RegisterResult(Guid fromClient, Guid packetId, bool result);
         void LoginResult(Guid fromClient, Guid packetId, bool result);
         void RoomPortToConnect(Guid id, int port);
-        void RoomList(Guid userId, IReadOnlyDictionary<Guid, GameRoom> rooms);
+        void RoomList(Guid userId, IEnumerable<GameRoom> rooms);
         void Welcome(Guid newGuid, string v);
     }
 }

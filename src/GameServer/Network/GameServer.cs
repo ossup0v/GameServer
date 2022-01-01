@@ -1,52 +1,73 @@
 ﻿using GameServer.Configs;
-using GameServer.Metagame.GameRoom;
+using GameServer.Metagame.GameRooms;
 
 namespace GameServer.Network
 {
     public class GameServer : IGameServer
     {
-        public int MaxPlayers { get; private set; }
-        public int Port { get; private set; }
+        public int MaxPlayerAmount { get; private set; }
+        public int MaxGameRoomAmount { get; private set; }
+        public int ClientsPort { get; private set; }
+        public int GameRoomsPort { get; private set; }
 
-        private readonly IServerSend _serverSend;
+        private readonly IServerSendToClient _serverSendToClient;
+        private readonly IServerSendToGameRoom _serverSendToGameRoom;
         private readonly IRoomManager _roomManager;
-        private readonly IDataReceiver _dataReceiver;
+        private readonly IClientDataReceiver _clientsDataReceiver;
+        private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
 
         public GameServer(GameServerConfig config,
-            IServerSend serverSend,
+            IServerSendToClient serverSendToClient,
+            IServerSendToGameRoom serverSendToGameRoom,
             IRoomManager roomManager,
-            IDataReceiver dataReceiver)
+            IClientDataReceiver clientDataReceiver,
+            IGameRoomDataReceiver gameRoomDataReceiver)
         {
             Console.WriteLine("Game server ctor was called");
-            MaxPlayers = config.MaxPlayers;
-            Port = config.Port;
-            _serverSend = serverSend;
+            MaxPlayerAmount = config.MaxPlayerAmount;
+            MaxGameRoomAmount = config.MaxGameRoomAmount;
+
+            ClientsPort = config.ClientPort;
+            GameRoomsPort = config.GameRoomPort;
+
+            _serverSendToClient = serverSendToClient;
+            _serverSendToGameRoom = serverSendToGameRoom;
             _roomManager = roomManager;
-            _dataReceiver = dataReceiver;
+            _clientsDataReceiver = clientDataReceiver;
+            _gameRoomDataReceiver = gameRoomDataReceiver;
         }
 
         public void Start()
         {
             Console.WriteLine("Starting server...");
-            _dataReceiver.StartReceive(Port, MaxPlayers);
-            _dataReceiver.NewClientAdded += OnNewClientAdded;
-            Console.WriteLine($"Server started on port {Port}.");
+#warning здесь был порт для клиентов
+            _clientsDataReceiver.StartReceive(ClientsPort, MaxPlayerAmount);
+            _clientsDataReceiver.NewClientAdded += OnNewClientAdded;
+
+            _gameRoomDataReceiver.StartReceive(GameRoomsPort, MaxGameRoomAmount);
+            _gameRoomDataReceiver.NewGameRoomAdded += OnNewGameRoomAdded;
+            Console.WriteLine($"Server started on port {ClientsPort}.");
         }
 
         public void Stop()
         {
-            _dataReceiver.StopReceive();
+            _clientsDataReceiver.StopReceive();
         }
 
         private void OnNewClientAdded(Guid newClientId)
         {
-            _serverSend.Welcome(newClientId, "Welcome to Server!");
+            _serverSendToClient.Welcome(newClientId, "Welcome to Server!");
             SendUserData(newClientId);
+        }
+
+        private void OnNewGameRoomAdded(Guid newGameRoomId)
+        {
+            _serverSendToGameRoom.GameRoomData(newGameRoomId);
         }
 
         private void SendUserData(Guid toClient)
         {
-            _serverSend.RoomList(toClient, _roomManager.Rooms);
+            _serverSendToClient.RoomList(toClient, _roomManager.Rooms);
         }
     }
 }

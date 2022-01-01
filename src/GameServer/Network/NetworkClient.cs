@@ -1,31 +1,23 @@
-﻿using GameServer.Common;
-using GameServer.DAL;
-using GameServer.DAL.Mongo;
+﻿using GameServer.DAL;
 using GameServer.Metagame;
-using GameServer.Metagame.GameRoom;
+using GameServer.Network.Holders;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameServer.Network
 {
-    public class Client
+    public class NetworkClient
     {
         public static int dataBufferSize = 4096;
 
         public Guid Id;
         private readonly IServiceProvider _serviceProvider;
-        public User User;
+        public MetagameUser User;
         public TCP tcp;
         public UDP udp;
 
-        public Client(Guid clientId, IServiceProvider serviceProvider)
+        public NetworkClient(Guid clientId, IServiceProvider serviceProvider)
         {
             Id = clientId;
             _serviceProvider = serviceProvider;
@@ -42,14 +34,14 @@ namespace GameServer.Network
             private NetworkStream stream;
             private Packet receivedData;
             private byte[] receiveBuffer;
-            private Client _client;
+            private NetworkClient _client;
 
             public TCP(Guid id)
             {
                 _id = id;
             }
 
-            public void Connect(TcpClient socket, Client client)
+            public void Connect(TcpClient socket, NetworkClient client)
             {
                 Socket = socket;
                 Socket.ReceiveBufferSize = dataBufferSize;
@@ -157,7 +149,7 @@ namespace GameServer.Network
         public void CreateUser()
         {
             Console.WriteLine("User with id " + Id + " created");
-            User = new User(Id, 
+            User = new MetagameUser(Id, 
                 _serviceProvider.GetRequiredService<IUserRepository>(),
                 _serviceProvider.GetRequiredService<IClientHolder>());
         }

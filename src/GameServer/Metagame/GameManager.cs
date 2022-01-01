@@ -1,16 +1,16 @@
 ﻿using GameServer.Common;
-using GameServer.Metagame.GameRoom;
+using GameServer.Metagame.GameRooms;
 using GameServer.Network;
 
 namespace GameServer.Metagame
 {
     public class GameManager : IGameManager
     {
-        private readonly IServerSend _serverSend;
+        private readonly IServerSendToClient _serverSend;
         private readonly IServiceProvider _serviceProvider;
         private readonly IRoomManager _roomManager;
 
-        public GameManager(IServerSend serverSend, 
+        public GameManager(IServerSendToClient serverSend, 
             IServiceProvider serviceProvider,
             IRoomManager roomManager)
         {
@@ -19,7 +19,7 @@ namespace GameServer.Metagame
             _roomManager = roomManager;
         }
 
-        public Task<ApiResult> JoinGameRoom(Guid roomId, User user)
+        public Task<ApiResult> JoinGameRoom(Guid roomId, MetagameUser user)
         {
             Console.WriteLine("User trying to join a game room");
             var room = _roomManager.GetRoom(roomId);
@@ -35,22 +35,9 @@ namespace GameServer.Metagame
             return Task.FromResult(ApiResult.Ok);
         }
 
-        public async Task<ApiResult> CreateRoom(User user, string mode, string title, int maxPlayerCount)
+        public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)
         {
-            var room = _roomManager.CreateRoom(user, mode, title, maxPlayerCount);
-
-            if (room == null)
-            {
-                return ApiResult.Error("Can't create room");
-            }
-
-            room.Join(user);
-#warning не, нужно пофиксить это, а то полное г......вно...
-            await Task.Delay((int)TimeSpan.FromSeconds(1).TotalMilliseconds);
-
-            _serverSend.RoomPortToConnect(user.Data.Id, room.Data.Port);
-
-            return ApiResult.Ok;
+            return Task.FromResult(_roomManager.CreateRoom(user, mode, title, maxPlayerCount));
         }
 
         public Task<ApiResult> SendRoomToUser(Guid userId)

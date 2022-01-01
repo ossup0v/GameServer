@@ -3,8 +3,9 @@ using System.Text;
 
 namespace GameServer.Network
 {
-    public enum ServerPackets
+    public enum ToClient
     {
+        //game room packets
         welcome = 1,
         spawnPlayer,
         playerPosition,
@@ -37,17 +38,15 @@ namespace GameServer.Network
         ratingTableUpdateKilledBots,
         playerScale,
 
-
+        //server packets
         roomPortToConnect,
         roomList,
-
-
         response
     }
 
-    /// <summary>Sent from client to server.</summary>
-    public enum ClientToGameRoom
+    public enum ToGameRoom
     {
+        //client packets
         welcomeReceived = 1,
         playerMovement,
         playerShooting,
@@ -55,15 +54,25 @@ namespace GameServer.Network
         playerChangeWeapon,
         playerRespawn,
         playerStartGame,
+
+
+        //server packets
+        gameRoomData,
     }
 
-    public enum ClientToServer
+    public enum ToServerFromClient
     {
+        //client packets
         welcomeReceived = 1,
         registerUser,
         joinGameRoom,
         loginUser,
         createGameRoom
+    }
+
+    public enum ToServerFromGameRoom
+    {
+        gameRoomLaunched = 1
     }
 
     public class Packet : IDisposable
@@ -79,9 +88,9 @@ namespace GameServer.Network
             readPos = 0; // Set readPos to 0
         }
 
-        public Packet(ClientToGameRoom packet) : this((int)packet) { }
-        public Packet(ClientToServer packet) : this((int)packet) { }
-        public Packet(ServerPackets packet) : this((int)packet) { }
+        public Packet(ToGameRoom packet) : this((int)packet) { }
+        public Packet(ToServerFromClient packet) : this((int)packet) { }
+        public Packet(ToClient packet) : this((int)packet) { }
         /// <summary>Creates a new packet with a given ID. Used for sending.</summary>
         /// <param name="_id">The packet ID.</param>
         public Packet(int _id)

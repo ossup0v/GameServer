@@ -1,15 +1,15 @@
-﻿using GameServer.Common;
-using GameServer.Metagame;
+﻿using GameServer.Metagame;
+using GameServer.Network.Holders;
 using Microsoft.Extensions.Hosting;
 
 namespace GameServer.Network
 {
-    public class ServerHandler : IServerHandler, IHostedService
+    public class ServerClientPacketsHandler : IHostedService
     {
         private readonly IClientHolder _clientHolder;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IServerSend _serverSend;
-        private readonly IDataReceiver _dataReceiver;
+        private readonly IServerSendToClient _serverSend;
+        private readonly IClientDataReceiver _dataReceiver;
         private readonly IGameManager _gameManager;
 
         public delegate Task PacketHandler(Guid fromClient, Packet packet);
@@ -19,20 +19,20 @@ namespace GameServer.Network
         {
             _handlers = new Dictionary<int, PacketHandler>()
             {
-                { (int)ClientToServer.welcomeReceived, WelcomeReceived },
-                { (int)ClientToServer.registerUser, RegisterUser },
-                { (int)ClientToServer.joinGameRoom, JoinGameRoom},
-                { (int)ClientToServer.loginUser, LoginUser},
-                { (int)ClientToServer.createGameRoom, CreateGameRoom},
+                { (int)ToServerFromClient.welcomeReceived, WelcomeReceived },
+                { (int)ToServerFromClient.registerUser, RegisterUser },
+                { (int)ToServerFromClient.joinGameRoom, JoinGameRoom},
+                { (int)ToServerFromClient.loginUser, LoginUser},
+                { (int)ToServerFromClient.createGameRoom, CreateGameRoom}
             };
 
             Console.WriteLine("Initialized packets.");
         }
 
-        public ServerHandler(IClientHolder clientHolder,
+        public ServerClientPacketsHandler(IClientHolder clientHolder,
             IServiceProvider serviceProvider,
-            IServerSend serverSend, 
-            IDataReceiver dataReceiver,
+            IServerSendToClient serverSend, 
+            IClientDataReceiver dataReceiver,
             IGameManager gameManager)
         {
             _clientHolder = clientHolder;
@@ -56,24 +56,24 @@ namespace GameServer.Network
             }
         }
 
-        public Task WelcomeReceived(Guid fromClient, Packet packet)
+        private Task WelcomeReceived(Guid fromClient, Packet packet)
         {
             Console.WriteLine("Welcome received");
             var clientIdCheck = packet.ReadGuid();
 
             Console.WriteLine($"Welcome received from id on server {fromClient}, in packet {clientIdCheck}");
-            Console.WriteLine($"{_clientHolder.GetClient(fromClient)?.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now player {fromClient}.");
+            Console.WriteLine($"{_clientHolder.Get(fromClient)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now player {fromClient}.");
             if (fromClient != clientIdCheck)
             {
                 Console.WriteLine($"Player (ID: {fromClient}) has assumed the wrong client ID ({clientIdCheck})!");
             }
 
-            _clientHolder.GetClient(fromClient)?.CreateUser();
+            _clientHolder.Get(fromClient)?.ActiveMetagameUser();
 
             return Task.CompletedTask;
         }
 
-        public async Task RegisterUser(Guid fromClient, Packet packet)
+        private async Task RegisterUser(Guid fromClient, Packet packet)
         {
             var packetId = packet.ReadGuid();
             var login = packet.ReadString();
@@ -81,33 +81,33 @@ namespace GameServer.Network
             var username = packet.ReadString();
 
             Console.WriteLine($"User registered with {login}: {password}");
-            var result = await _clientHolder.GetClient(fromClient)?.User.Register(login, password, username, fromClient);
+            var result = await _clientHolder.Get(fromClient)?.MetagameUser.Register(login, password, username, fromClient);
 
             _serverSend.RegisterResult(fromClient, packetId, result.Success);
         }
 
-        public async Task LoginUser(Guid fromClient, Packet packet)
+        private async Task LoginUser(Guid fromClient, Packet packet)
         {
             var packetId = packet.ReadGuid();
             var login = packet.ReadString();
             var password = packet.ReadString();
 
             Console.WriteLine($"User registered with {login}: {password}");
-            var result = await _clientHolder.GetClient(fromClient).User.Login(login, password, fromClient);
+            var result = await _clientHolder.Get(fromClient).MetagameUser.Login(login, password, fromClient);
 
             _serverSend.LoginResult(fromClient, packetId, result.Success);
         }
 
-        public Task JoinGameRoom(Guid fromClient, Packet packet)
+        private Task JoinGameRoom(Guid fromClient, Packet packet)
         {
             Console.WriteLine($"user {fromClient} joined to game!");
             var roomId = packet.ReadGuid();
-            _gameManager.JoinGameRoom(roomId, _clientHolder.GetClient(fromClient).User);
+            _gameManager.JoinGameRoom(roomId, _clientHolder.Get(fromClient).MetagameUser);
 
             return Task.CompletedTask;
         }
 
-        public Task CreateGameRoom(Guid fromClient, Packet packet)
+        private async Task CreateGameRoom(Guid fromClient, Packet packet)
         {
             Console.WriteLine($"user {fromClient} creating game room!");
 
@@ -115,9 +115,10 @@ namespace GameServer.Network
             var title = packet.ReadString();
             var maxPlayerCount = packet.ReadInt();
 
-            _gameManager.CreateRoom(_clientHolder.GetClient(fromClient).User, mode, title, maxPlayerCount);
+            var result = await _gameManager.CreateRoom(_clientHolder.Get(fromClient).MetagameUser, mode, title, maxPlayerCount);
 
-            return Task.CompletedTask;
+            if (!result.Success)
+                Console.WriteLine($"Error! can't create room reson is {result.Message}");
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

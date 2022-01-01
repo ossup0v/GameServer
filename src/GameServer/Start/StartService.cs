@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameServer.Start
 {
@@ -17,17 +12,15 @@ namespace GameServer.Start
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            //_hostApplicationLifetime.ApplicationStarted.Register(OnStarted);
-            //_hostApplicationLifetime.ApplicationStopping.Register(OnStopping);
-            //_hostApplicationLifetime.ApplicationStopped.Register(OnStopped);
-
             _gameServer.Start();
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
-            => Task.CompletedTask;
-
+        {
+            _gameServer.Stop();
+            return Task.CompletedTask;
+        }
         private void OnStarted()
         {
             // ...

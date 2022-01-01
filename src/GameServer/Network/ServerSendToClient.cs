@@ -1,14 +1,15 @@
-﻿using GameServer.Metagame.GameRoom;
+﻿using GameServer.Metagame.GameRooms;
+using GameServer.Network.Holders;
 
 namespace GameServer.Network
 {
-    public class ServerSend : IServerSend
+    public class ServerSendToClient : IServerSendToClient
     {
         private readonly IClientHolder _clientHolder;
-        private readonly IDataSender _dataSender;
+        private readonly IClientDataSender _dataSender;
         private readonly IServiceProvider _serviceProvider;
 
-        public ServerSend(IClientHolder clientHolder, IDataSender dataSender, IServiceProvider serviceProvider)
+        public ServerSendToClient(IClientHolder clientHolder, IClientDataSender dataSender, IServiceProvider serviceProvider)
         {
             _clientHolder = clientHolder;
             _dataSender = dataSender;
@@ -31,7 +32,7 @@ namespace GameServer.Network
         private void SendTCPDataToAll(Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in _clientHolder.GetAllClients())
+            foreach (var client in _clientHolder.GetAll())
             {
                 _dataSender.SendDataTCP(client.Id, packet);
             }
@@ -40,7 +41,7 @@ namespace GameServer.Network
         private void SendTCPDataToAll(Guid exceptClient, Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in _clientHolder.GetAllClients())
+            foreach (var client in _clientHolder.GetAll())
             {
                 if (client.Id != exceptClient)
                 {
@@ -52,7 +53,7 @@ namespace GameServer.Network
         private void SendUDPDataToAll(Packet packet)
         {
             packet.WriteLength();
-            foreach (var client in _clientHolder.GetAllClients())
+            foreach (var client in _clientHolder.GetAll())
             {
                 _dataSender.SendDataUDP(client.Id, packet);
             }
@@ -62,7 +63,7 @@ namespace GameServer.Network
         {
             packet.WriteLength();
 
-            foreach (var client in _clientHolder.GetAllClients())
+            foreach (var client in _clientHolder.GetAll())
             {
                 if (client.Id != exceptClient)
                 {
@@ -74,7 +75,7 @@ namespace GameServer.Network
 
         public void Welcome(Guid toClient, string msg)
         {
-            using (Packet packet = new Packet(ServerPackets.welcome))
+            using (Packet packet = new Packet(ToClient.welcome))
             {
                 packet.Write(msg);
                 packet.Write(toClient);
@@ -86,7 +87,7 @@ namespace GameServer.Network
 
         public void RegisterResult(Guid toClient, Guid packetId, bool result)
         {
-            using (Packet packet = new Packet(ServerPackets.response))
+            using (Packet packet = new Packet(ToClient.response))
             {
                 packet.Write(packetId);
                 packet.Write(result);
@@ -100,7 +101,7 @@ namespace GameServer.Network
 
         public void LoginResult(Guid toClient, Guid packetId, bool result)
         {
-            using (Packet packet = new Packet(ServerPackets.response))
+            using (Packet packet = new Packet(ToClient.response))
             {
                 packet.Write(packetId);
                 packet.Write(result);
@@ -115,7 +116,7 @@ namespace GameServer.Network
         public void RoomPortToConnect(Guid toClient, int port)
         {
 
-            using (Packet packet = new Packet(ServerPackets.roomPortToConnect))
+            using (Packet packet = new Packet(ToClient.roomPortToConnect))
             {
 #if DEBUG
                 packet.Write("127.0.0.1");
@@ -128,13 +129,13 @@ namespace GameServer.Network
             }
         }
 
-        public void RoomList(Guid toClient, IReadOnlyDictionary<Guid, GameRoom> rooms)
+        public void RoomList(Guid toClient, IEnumerable<GameRoom> rooms)
         {
-            using (Packet packet = new Packet(ServerPackets.roomList))
+            using (Packet packet = new Packet(ToClient.roomList))
             {
-                packet.Write(rooms.Count);
+                packet.Write(rooms.Count());
 
-                foreach (var room in rooms.Values)
+                foreach (var room in rooms)
                 {
                     packet.Write(room.Data.RoomId);
                     packet.Write(room.Data.Port);

@@ -1,21 +1,21 @@
 ﻿using GameServer.Common;
 using GameServer.DAL;
 using GameServer.DAL.DTOs;
-using GameServer.DAL.Mongo;
 using GameServer.Network;
+using GameServer.Network.Holders;
 
 namespace GameServer.Metagame
 {
-    public class User
+    public class MetagameUser
     {
         private readonly IUserRepository _userRepository;
-        public readonly Guid UserId;
+        public readonly Guid Id;
         private readonly IClientHolder _clientHolder;
         public UserData Data;
 
-        public User(Guid userId, IUserRepository userRepository, IClientHolder clientHolder)
+        public MetagameUser(Guid id, IUserRepository userRepository, IClientHolder clientHolder)
         {
-            UserId = userId;
+            Id = id;
             _userRepository = userRepository;
             _clientHolder = clientHolder;
         }
@@ -81,7 +81,7 @@ namespace GameServer.Metagame
             if (existsUser.Password == password)
             {
                 Data = new UserData { Password = existsUser.Password, Id = id, Login = existsUser.Login, Username = existsUser.Username };
-                _clientHolder.GetClient(id).User = this;
+                _clientHolder.Get(id).MetagameUser = this;
                 return ApiResult.Ok;
             }
 

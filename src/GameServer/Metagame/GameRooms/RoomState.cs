@@ -1,4 +1,4 @@
-﻿namespace GameServer.Metagame.GameRoom
+﻿namespace GameServer.Metagame.GameRooms
 {
     public enum RoomState
     {
