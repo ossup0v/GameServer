@@ -1,8 +1,4 @@
-﻿using GameServer.DAL;
-using GameServer.Metagame;
-using GameServer.Network.Holders;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
 namespace GameServer.Network
@@ -12,15 +8,12 @@ namespace GameServer.Network
         public static int dataBufferSize = 4096;
 
         public Guid Id;
-        private readonly IServiceProvider _serviceProvider;
-        public MetagameUser User;
         public TCP tcp;
         public UDP udp;
 
-        public NetworkClient(Guid clientId, IServiceProvider serviceProvider)
+        public NetworkClient(Guid clientId)
         {
             Id = clientId;
-            _serviceProvider = serviceProvider;
             tcp = new TCP(Id);
             udp = new UDP(Id);
         }
@@ -146,14 +139,6 @@ namespace GameServer.Network
             }
         }
 
-        public void CreateUser()
-        {
-            Console.WriteLine("User with id " + Id + " created");
-            User = new MetagameUser(Id, 
-                _serviceProvider.GetRequiredService<IUserRepository>(),
-                _serviceProvider.GetRequiredService<IClientHolder>());
-        }
-
         public class UDP
         {
             public IPEndPoint? EndPoint;
@@ -188,7 +173,6 @@ namespace GameServer.Network
         {
             Console.WriteLine($"{tcp.Socket.Client.RemoteEndPoint} was disconnected");
 
-            User = null;
             tcp.Dispose();
         }
     }

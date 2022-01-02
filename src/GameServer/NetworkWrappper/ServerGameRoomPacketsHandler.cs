@@ -1,14 +1,11 @@
 ﻿using GameServer.Metagame;
 using GameServer.Metagame.GameRooms;
-using GameServer.Network.Holders;
+using GameServer.Network;
+using GameServer.NetworkWrappper.Holders;
+using GameServer.NetworkWrappper.NetworkProcessors;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
     public class ServerGameRoomPacketsHandler : IHostedService
     {
@@ -29,7 +26,7 @@ namespace GameServer.Network
                 { (int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched }
             };
 
-            Console.WriteLine("Initialized packets.");
+            Console.WriteLine("Game room initialized packets.");
         }
 
         public ServerGameRoomPacketsHandler(IClientHolder clientHolder,
@@ -82,6 +79,7 @@ namespace GameServer.Network
 
             Console.WriteLine($"Welcome received from id on server {fromGameRoom}, in packet {clientIdCheck}");
             Console.WriteLine($"{_gameRoomHolder.Get(fromGameRoom)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now game room {fromGameRoom}.");
+
             if (fromGameRoom != clientIdCheck)
             {
                 Console.WriteLine($"Player (ID: {fromGameRoom}) has assumed the wrong client ID ({clientIdCheck})!");
@@ -108,7 +106,7 @@ namespace GameServer.Network
                 RoomId = fromGameRoom,
                 Creator = creatorOfGameRoom,
                 Port = gameRoomPort,
-                Users = new List<MetagameUser>() { creatorOfGameRoom }
+                Users = new List<MetagameUser>()
             };
 
             if (creatorOfGameRoom != null)

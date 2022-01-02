@@ -1,6 +1,6 @@
 ﻿using GameServer.Metagame.GameRooms;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
     public interface IServerSendToClient
     {
@@ -8,6 +8,6 @@ namespace GameServer.Network
         void LoginResult(Guid fromClient, Guid packetId, bool result);
         void RoomPortToConnect(Guid id, int port);
         void RoomList(Guid userId, IEnumerable<GameRoom> rooms);
-        void Welcome(Guid newGuid, string v);
+        void Welcome(Guid newGuid, string message);
     }
 }

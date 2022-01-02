@@ -1,8 +1,8 @@
-﻿using GameServer.Common;
+﻿using AutoMapper;
+using GameServer.Common;
 using GameServer.DAL;
 using GameServer.DAL.DTOs;
-using GameServer.Network;
-using GameServer.Network.Holders;
+using GameServer.NetworkWrappper.Holders;
 
 namespace GameServer.Metagame
 {
@@ -11,13 +11,15 @@ namespace GameServer.Metagame
         private readonly IUserRepository _userRepository;
         public readonly Guid Id;
         private readonly IClientHolder _clientHolder;
+        private readonly IMapper _mapper;
         public UserData Data;
 
-        public MetagameUser(Guid id, IUserRepository userRepository, IClientHolder clientHolder)
+        public MetagameUser(Guid id, IUserRepository userRepository, IClientHolder clientHolder, IMapper mapper)
         {
             Id = id;
             _userRepository = userRepository;
             _clientHolder = clientHolder;
+            _mapper = mapper;
         }
 
         public void GetInventory()
@@ -63,7 +65,7 @@ namespace GameServer.Metagame
         public Task<ApiResult> Register(string login, string password, string username, Guid id)
         {
             var newUser = new UserDTO { Login = login, Password = password, Username = username, Id = id };
-            Data = new UserData { Login = login, Password = password, Username = username, Id = id };
+            Data = _mapper.Map<UserData>(newUser);
 
             _userRepository.AddUser(newUser);
             return Task.FromResult(ApiResult.Ok);
@@ -80,7 +82,7 @@ namespace GameServer.Metagame
 
             if (existsUser.Password == password)
             {
-                Data = new UserData { Password = existsUser.Password, Id = id, Login = existsUser.Login, Username = existsUser.Username };
+                Data = _mapper.Map<UserData>(existsUser);
                 _clientHolder.Get(id).MetagameUser = this;
                 return ApiResult.Ok;
             }

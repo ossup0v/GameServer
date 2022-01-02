@@ -1,8 +1,10 @@
 ﻿using GameServer.Metagame;
-using GameServer.Network.Holders;
+using GameServer.Network;
+using GameServer.NetworkWrappper.Holders;
+using GameServer.NetworkWrappper.NetworkProcessors;
 using Microsoft.Extensions.Hosting;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
     public class ServerClientPacketsHandler : IHostedService
     {

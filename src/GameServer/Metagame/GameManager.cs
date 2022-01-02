@@ -1,6 +1,6 @@
 ﻿using GameServer.Common;
 using GameServer.Metagame.GameRooms;
-using GameServer.Network;
+using GameServer.NetworkWrappper;
 
 namespace GameServer.Metagame
 {
@@ -38,12 +38,6 @@ namespace GameServer.Metagame
         public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)
         {
             return Task.FromResult(_roomManager.CreateRoom(user, mode, title, maxPlayerCount));
-        }
-
-        public Task<ApiResult> SendRoomToUser(Guid userId)
-        {
-            _serverSend.RoomList(userId, _roomManager.Rooms);
-            return Task.FromResult(ApiResult.Ok);
         }
     }
 }

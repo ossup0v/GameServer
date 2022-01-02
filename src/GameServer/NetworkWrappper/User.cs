@@ -1,12 +1,15 @@
-﻿using GameServer.DAL;
+﻿using AutoMapper;
+using GameServer.Common;
+using GameServer.DAL;
 using GameServer.Metagame;
-using GameServer.Network.Holders;
+using GameServer.Network;
+using GameServer.NetworkWrappper.Holders;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Sockets;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
-    public class User
+    public class User : IWithId<Guid>
     {
         private readonly IServiceProvider _serviceProvider;
         private bool _isActive = false;
@@ -20,11 +23,12 @@ namespace GameServer.Network
         {
             Id = id;
             _serviceProvider = serviceProvider;
-            Client = new NetworkClient(id, serviceProvider);
+            Client = new NetworkClient(id);
 
             MetagameUser = new MetagameUser(Id,
                 _serviceProvider.GetRequiredService<IUserRepository>(),
-                _serviceProvider.GetRequiredService<IClientHolder>());
+                _serviceProvider.GetRequiredService<IClientHolder>(),
+                _serviceProvider.GetRequiredService<IMapper>());
         }
 
         public void ActiveMetagameUser()

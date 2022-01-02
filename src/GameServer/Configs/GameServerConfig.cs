@@ -9,6 +9,7 @@
         public int GameRoomPort;
 
         public int MaxPlayerAmount;
+
         public int MaxGameRoomAmount;
     }
 }

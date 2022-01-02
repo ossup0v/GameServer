@@ -1,8 +1,11 @@
-﻿namespace GameServer.Network.Holders
+﻿namespace GameServer.NetworkWrappper.Holders
 {
     public class ClientHolder : IClientHolder
     {
         private Dictionary<Guid, User> _clients = new Dictionary<Guid, User>();
+
+        public int Count => _clients.Count;
+
         public void AddNew(User newClient)
         {
             _clients.Add(newClient.Id, newClient);
@@ -24,6 +27,5 @@
         }
     }
 
-    public interface IClientHolder : IHolder<User, Guid>
-    { }
+    public interface IClientHolder : IHolder<Guid, User> { }
 }

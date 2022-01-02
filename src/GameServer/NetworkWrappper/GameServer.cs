@@ -1,7 +1,8 @@
 ﻿using GameServer.Configs;
 using GameServer.Metagame.GameRooms;
+using GameServer.NetworkWrappper.NetworkProcessors;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
     public class GameServer : IGameServer
     {
@@ -40,12 +41,12 @@ namespace GameServer.Network
         public void Start()
         {
             Console.WriteLine("Starting server...");
-#warning здесь был порт для клиентов
+
             _clientsDataReceiver.StartReceive(ClientsPort, MaxPlayerAmount);
-            _clientsDataReceiver.NewClientAdded += OnNewClientAdded;
+            _clientsDataReceiver.NewNetworkClientAdded += OnNewClientAdded;
 
             _gameRoomDataReceiver.StartReceive(GameRoomsPort, MaxGameRoomAmount);
-            _gameRoomDataReceiver.NewGameRoomAdded += OnNewGameRoomAdded;
+            _gameRoomDataReceiver.NewNetworkClientAdded += OnNewGameRoomAdded;
             Console.WriteLine($"Server started on port {ClientsPort}.");
         }
 

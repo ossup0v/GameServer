@@ -1,5 +1,4 @@
 ﻿using GameServer.Common;
-using GameServer.Network;
 
 namespace GameServer.Metagame
 {

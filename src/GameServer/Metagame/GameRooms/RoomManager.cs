@@ -1,6 +1,6 @@
 ﻿using GameServer.Common;
 using GameServer.Configs;
-using GameServer.Network.Holders;
+using GameServer.NetworkWrappper.Holders;
 using System.Diagnostics;
 
 namespace GameServer.Metagame.GameRooms

@@ -1,10 +1,12 @@
-﻿using GameServer.Configs;
+﻿using GameServer.Common;
+using GameServer.Configs;
 using GameServer.DAL;
 using GameServer.DAL.Mongo;
 using GameServer.Metagame;
 using GameServer.Metagame.GameRooms;
-using GameServer.Network;
-using GameServer.Network.Holders;
+using GameServer.NetworkWrappper;
+using GameServer.NetworkWrappper.Holders;
+using GameServer.NetworkWrappper.NetworkProcessors;
 using GameServer.Start;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,7 +22,7 @@ namespace GameServer
                     services.AddSingleton<IRoomManager, RoomManager>()
                     .AddSingleton<RoomManagerConfig>(new RoomManagerConfig { AvailablePorts = new List<int> { 26952, 26953, 26955, 26956, 26957, 26958, 26959, 26960 } })
                     .AddSingleton<GameServerConfig>(new GameServerConfig { ClientPort = 26954, GameRoomPort = 26949, MaxPlayerAmount = 150, MaxGameRoomAmount = 999 })
-                    .AddSingleton<IGameServer, GameServer.Network.GameServer>()
+                    .AddSingleton<IGameServer, GameServer.NetworkWrappper.GameServer>()
                     .AddSingleton<IGameManager, GameManager>()
                     .AddSingleton<IServerSendToClient, ServerSendToClient>()
                     .AddSingleton<IServerSendToGameRoom, ServerSendToGameRoom>()
@@ -34,6 +36,10 @@ namespace GameServer
                     .AddHostedService<StartService>()
                     .AddHostedService<ServerClientPacketsHandler>()
                     .AddHostedService<ServerGameRoomPacketsHandler>()
+                    .AddAutoMapper(config =>
+                    {
+                        config.AddProfile<AutoMapperProfile>();
+                    })
                 //.Configure<RoomManagerConfig>(x =>
                 //{
                 //    x.AvailablePorts = new List<int> { 26952, 26953, 26955, 26956, 26957, 26958, 26959, 26960 };

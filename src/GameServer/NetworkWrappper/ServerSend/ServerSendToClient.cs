@@ -1,77 +1,13 @@
 ﻿using GameServer.Metagame.GameRooms;
-using GameServer.Network.Holders;
+using GameServer.Network;
+using GameServer.NetworkWrappper.Holders;
+using GameServer.NetworkWrappper.NetworkProcessors;
 
-namespace GameServer.Network
+namespace GameServer.NetworkWrappper
 {
-    public class ServerSendToClient : IServerSendToClient
+    public class ServerSendToClient : ServerSendBase<IClientHolder, Guid, User>, IServerSendToClient
     {
-        private readonly IClientHolder _clientHolder;
-        private readonly IClientDataSender _dataSender;
-        private readonly IServiceProvider _serviceProvider;
-
-        public ServerSendToClient(IClientHolder clientHolder, IClientDataSender dataSender, IServiceProvider serviceProvider)
-        {
-            _clientHolder = clientHolder;
-            _dataSender = dataSender;
-            _serviceProvider = serviceProvider;
-        }
-
-        #region SendBase
-        private void SendTCPData(Guid toClient, Packet packet)
-        {
-            packet.WriteLength();
-            _dataSender.SendDataTCP(toClient, packet);
-        }
-
-        private void SendUDPData(Guid toClient, Packet packet)
-        {
-            packet.WriteLength();
-            _dataSender.SendDataUDP(toClient, packet);
-        }
-
-        private void SendTCPDataToAll(Packet packet)
-        {
-            packet.WriteLength();
-            foreach (var client in _clientHolder.GetAll())
-            {
-                _dataSender.SendDataTCP(client.Id, packet);
-            }
-        }
-
-        private void SendTCPDataToAll(Guid exceptClient, Packet packet)
-        {
-            packet.WriteLength();
-            foreach (var client in _clientHolder.GetAll())
-            {
-                if (client.Id != exceptClient)
-                {
-                    _dataSender.SendDataTCP(client.Id, packet);
-                }
-            }
-        }
-
-        private void SendUDPDataToAll(Packet packet)
-        {
-            packet.WriteLength();
-            foreach (var client in _clientHolder.GetAll())
-            {
-                _dataSender.SendDataUDP(client.Id, packet);
-            }
-        }
-
-        private void SendUDPDataToAll(Guid exceptClient, Packet packet)
-        {
-            packet.WriteLength();
-
-            foreach (var client in _clientHolder.GetAll())
-            {
-                if (client.Id != exceptClient)
-                {
-                    _dataSender.SendDataUDP(client.Id, packet);
-                }
-            }
-        }
-        #endregion
+        public ServerSendToClient(IClientHolder holder, IClientDataSender dataSender) : base(holder, dataSender) { }
 
         public void Welcome(Guid toClient, string msg)
         {
@@ -118,6 +54,7 @@ namespace GameServer.Network
 
             using (Packet packet = new Packet(ToClient.roomPortToConnect))
             {
+#warning fix it, use config!
 #if DEBUG
                 packet.Write("127.0.0.1");
 #else
