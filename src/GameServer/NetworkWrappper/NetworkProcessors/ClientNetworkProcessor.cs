@@ -1,13 +1,17 @@
 ﻿using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper.NetworkProcessors
 {
     public class ClientNetworkProcessor : NetworkProcessorBase<IClientHolder, Guid, User>, IClientDataSender, IClientDataReceiver
     {
-        public ClientNetworkProcessor(IClientHolder clientHolder, IServiceProvider serviceProvider) : base(clientHolder, serviceProvider) { }
+        public ClientNetworkProcessor(IClientHolder clientHolder, IServiceProvider serviceProvider, ILogger<ClientNetworkProcessor> log) 
+            : base(clientHolder, serviceProvider, log) { }
 
         public Action<Guid> NewNetworkClientAdded { get; set; } = delegate { };
 
@@ -38,7 +42,7 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error receiving UDP data: {ex}");
+                Log.ZLogError($"Error receiving UDP data: {ex}");
             }
         }
 
@@ -76,7 +80,7 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             }
             catch (Exception ex) { }
 
-            Console.WriteLine($"Incoming connection from {client.Client.RemoteEndPoint}...");
+            Log.ZLogInformation($"Incoming connection from {client.Client.RemoteEndPoint}...");
 
             if (IsAvailableToConnect)
             {
@@ -84,13 +88,13 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
                 return;
             }
 
-            Console.WriteLine($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
+            Log.ZLogError($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
         }
 
         private void ConnectNewUser(TcpClient client)
         {
             var userId = Guid.NewGuid();
-            var newUser = new User(userId, ServiceProvider);
+            var newUser = new User(userId, ServiceProvider.GetRequiredService<ILogger<User>>(), ServiceProvider);
             
             newUser.Connect(client);
             newUser.SubsctibeToReceivePackets(PacketReceived);

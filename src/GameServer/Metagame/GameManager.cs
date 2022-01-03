@@ -1,6 +1,8 @@
 ﻿using GameServer.Common;
 using GameServer.Metagame.GameRooms;
 using GameServer.NetworkWrappper;
+using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace GameServer.Metagame
 {
@@ -9,28 +11,31 @@ namespace GameServer.Metagame
         private readonly IServerSendToClient _serverSend;
         private readonly IServiceProvider _serviceProvider;
         private readonly IRoomManager _roomManager;
+        private readonly ILogger<GameManager> _log;
 
         public GameManager(IServerSendToClient serverSend, 
             IServiceProvider serviceProvider,
-            IRoomManager roomManager)
+            IRoomManager roomManager,
+            ILogger<GameManager> log)
         {
             _serverSend = serverSend;
             _serviceProvider = serviceProvider;
             _roomManager = roomManager;
+            _log = log;
         }
 
         public Task<ApiResult> JoinGameRoom(Guid roomId, MetagameUser user)
         {
-            Console.WriteLine("User trying to join a game room");
+            _log.ZLogInformation("User trying to join a game room");
             var room = _roomManager.GetRoom(roomId);
             if (room == null)
             {
-                Console.WriteLine($"User {user?.Data?.Id}-{user?.Data?.Username} can't find room with id {roomId}");
+                _log.ZLogError($"User {user?.Data?.Id}-{user?.Data?.Username} can't find room with id {roomId}");
                 return Task.FromResult(ApiResult.Error("Can't create room"));
             }
             room.Join(user);
             _serverSend.RoomPortToConnect(user.Data.Id, room.Data.Port);
-            Console.WriteLine($"Sended port {room.Data.Port} to user");
+            _log.ZLogInformation($"Sended port {room.Data.Port} to user");
 
             return Task.FromResult(ApiResult.Ok);
         }

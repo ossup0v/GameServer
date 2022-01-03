@@ -3,6 +3,8 @@ using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
 using GameServer.NetworkWrappper.NetworkProcessors;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
@@ -13,6 +15,7 @@ namespace GameServer.NetworkWrappper
         private readonly IServerSendToClient _serverSend;
         private readonly IClientDataReceiver _dataReceiver;
         private readonly IGameManager _gameManager;
+        private readonly ILogger<ServerClientPacketsHandler> _log;
 
         public delegate Task PacketHandler(Guid fromClient, Packet packet);
         private Dictionary<int, PacketHandler> _handlers;
@@ -28,20 +31,22 @@ namespace GameServer.NetworkWrappper
                 { (int)ToServerFromClient.createGameRoom, CreateGameRoom}
             };
 
-            Console.WriteLine("Initialized packets.");
+            _log.ZLogInformation("Initialized packets.");
         }
 
         public ServerClientPacketsHandler(IClientHolder clientHolder,
             IServiceProvider serviceProvider,
             IServerSendToClient serverSend, 
             IClientDataReceiver dataReceiver,
-            IGameManager gameManager)
+            IGameManager gameManager,
+            ILogger<ServerClientPacketsHandler> log)
         {
             _clientHolder = clientHolder;
             _serviceProvider = serviceProvider;
             _serverSend = serverSend;
             _dataReceiver = dataReceiver;
             _gameManager = gameManager;
+            _log = log;
 
             InitializeHandlers();
         }
@@ -54,23 +59,23 @@ namespace GameServer.NetworkWrappper
             }
             else
             {
-                Console.WriteLine($"Error! can't process packer with packet id {packetId}, from client {fromClient}");
+                _log.ZLogError($"Error! can't process packer with packet id {packetId}, from client {fromClient}");
             }
         }
 
         private Task WelcomeReceived(Guid fromClient, Packet packet)
         {
-            Console.WriteLine("Welcome received");
+            _log.ZLogInformation("Welcome received");
             var clientIdCheck = packet.ReadGuid();
 
-            Console.WriteLine($"Welcome received from id on server {fromClient}, in packet {clientIdCheck}");
-            Console.WriteLine($"{_clientHolder.Get(fromClient)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now player {fromClient}.");
+            _log.ZLogInformation($"Welcome received from id on server {fromClient}, in packet {clientIdCheck}");
+            _log.ZLogInformation($"{_clientHolder.Get(fromClient)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now player {fromClient}.");
             if (fromClient != clientIdCheck)
             {
-                Console.WriteLine($"Player (ID: {fromClient}) has assumed the wrong client ID ({clientIdCheck})!");
+                _log.ZLogError($"Player (ID: {fromClient}) has assumed the wrong client ID ({clientIdCheck})!");
             }
 
-            _clientHolder.Get(fromClient)?.ActiveMetagameUser();
+            _clientHolder.Get(fromClient)?.JoinToServer();
 
             return Task.CompletedTask;
         }
@@ -82,7 +87,8 @@ namespace GameServer.NetworkWrappper
             var password = packet.ReadString();
             var username = packet.ReadString();
 
-            Console.WriteLine($"User registered with {login}: {password}");
+            _log.ZLogInformation($"User registered with {login}: {password}");
+            
             var result = await _clientHolder.Get(fromClient)?.MetagameUser.Register(login, password, username, fromClient);
 
             _serverSend.RegisterResult(fromClient, packetId, result.Success);
@@ -94,7 +100,8 @@ namespace GameServer.NetworkWrappper
             var login = packet.ReadString();
             var password = packet.ReadString();
 
-            Console.WriteLine($"User registered with {login}: {password}");
+            _log.ZLogInformation($"User registered with {login}: {password}");
+
             var result = await _clientHolder.Get(fromClient).MetagameUser.Login(login, password, fromClient);
 
             _serverSend.LoginResult(fromClient, packetId, result.Success);
@@ -111,7 +118,7 @@ namespace GameServer.NetworkWrappper
 
         private async Task CreateGameRoom(Guid fromClient, Packet packet)
         {
-            Console.WriteLine($"user {fromClient} creating game room!");
+            _log.ZLogInformation($"user {fromClient} creating game room!");
 
             var mode = packet.ReadString();
             var title = packet.ReadString();
@@ -120,7 +127,7 @@ namespace GameServer.NetworkWrappper
             var result = await _gameManager.CreateRoom(_clientHolder.Get(fromClient).MetagameUser, mode, title, maxPlayerCount);
 
             if (!result.Success)
-                Console.WriteLine($"Error! can't create room reson is {result.Message}");
+                _log.ZLogError($"Error! can't create room reson is {result.Message}");
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

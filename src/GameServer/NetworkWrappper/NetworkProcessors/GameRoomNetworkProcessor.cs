@@ -1,14 +1,17 @@
 ﻿using GameServer.Metagame.GameRooms;
 using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper.NetworkProcessors
 {
     public class GameRoomNetworkProcessor : NetworkProcessorBase<IGameRoomHolder, Guid, GameRoom>, IGameRoomDataSender, IGameRoomDataReceiver
     {
-        public GameRoomNetworkProcessor(IGameRoomHolder gameRoomHolder, IServiceProvider serviceProvider) : base(gameRoomHolder, serviceProvider) { }
+        public GameRoomNetworkProcessor(IGameRoomHolder gameRoomHolder, IServiceProvider serviceProvider, ILogger<GameRoomNetworkProcessor> log) 
+            : base(gameRoomHolder, serviceProvider, log) { }
         
         public Action<Guid> NewNetworkClientAdded { get; set; } = delegate { };
         
@@ -32,15 +35,17 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             }
             catch (Exception ex) { }
 
-            Console.WriteLine($"Incoming connection from {client.Client.RemoteEndPoint}...");
+            Log.ZLogInformation($"Incoming connection from {client.Client.RemoteEndPoint}...");
 
             if (IsAvailableToConnect)
             {
                 ConnectNewGameRoom(client);
                 return;
             }
+
+            Log.ZLogError($"Can't create game room, all ports is captured! can't connect game room {client.Client.RemoteEndPoint}...");
         }
-        
+
         private void ConnectNewGameRoom(TcpClient client)
         {
             var newGameRoomId = Guid.NewGuid();
@@ -71,7 +76,7 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error receiving UDP data: {ex}");
+                Log.ZLogError($"Error receiving UDP data: {ex}");
             }
         }
 

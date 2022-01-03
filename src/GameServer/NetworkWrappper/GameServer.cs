@@ -1,6 +1,8 @@
 ﻿using GameServer.Configs;
 using GameServer.Metagame.GameRooms;
 using GameServer.NetworkWrappper.NetworkProcessors;
+using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
@@ -16,15 +18,16 @@ namespace GameServer.NetworkWrappper
         private readonly IRoomManager _roomManager;
         private readonly IClientDataReceiver _clientsDataReceiver;
         private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
+        private readonly ILogger<GameServer> _log;
 
         public GameServer(GameServerConfig config,
             IServerSendToClient serverSendToClient,
             IServerSendToGameRoom serverSendToGameRoom,
             IRoomManager roomManager,
             IClientDataReceiver clientDataReceiver,
-            IGameRoomDataReceiver gameRoomDataReceiver)
+            IGameRoomDataReceiver gameRoomDataReceiver,
+            ILogger<GameServer> log)
         {
-            Console.WriteLine("Game server ctor was called");
             MaxPlayerAmount = config.MaxPlayerAmount;
             MaxGameRoomAmount = config.MaxGameRoomAmount;
 
@@ -36,18 +39,19 @@ namespace GameServer.NetworkWrappper
             _roomManager = roomManager;
             _clientsDataReceiver = clientDataReceiver;
             _gameRoomDataReceiver = gameRoomDataReceiver;
+            _log = log;
         }
 
         public void Start()
         {
-            Console.WriteLine("Starting server...");
+            _log.ZLogError("Starting server...");
 
             _clientsDataReceiver.StartReceive(ClientsPort, MaxPlayerAmount);
             _clientsDataReceiver.NewNetworkClientAdded += OnNewClientAdded;
 
             _gameRoomDataReceiver.StartReceive(GameRoomsPort, MaxGameRoomAmount);
             _gameRoomDataReceiver.NewNetworkClientAdded += OnNewGameRoomAdded;
-            Console.WriteLine($"Server started on port {ClientsPort}.");
+            _log.ZLogInformation($"Server started on port {ClientsPort}.");
         }
 
         public void Stop()

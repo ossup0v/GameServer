@@ -1,8 +1,17 @@
-﻿namespace GameServer.NetworkWrappper.Holders
+﻿using Microsoft.Extensions.Logging;
+using ZLogger;
+
+namespace GameServer.NetworkWrappper.Holders
 {
     public class ClientHolder : IClientHolder
     {
-        private Dictionary<Guid, User> _clients = new Dictionary<Guid, User>();
+        private readonly Dictionary<Guid, User> _clients = new Dictionary<Guid, User>();
+        private readonly ILogger<ClientHolder> _log;
+
+        public ClientHolder(ILogger<ClientHolder> log)
+        {
+            _log = log;
+        }
 
         public int Count => _clients.Count;
 
@@ -22,7 +31,7 @@
                 return client;
 
 
-            Console.WriteLine($"Can't find client with id {clientId}, all clients is {string.Join(" ", _clients.Keys)}");
+            _log.ZLogError($"Can't find client with id {clientId}, all clients is {string.Join(" ", _clients.Keys)}");
             return null;
         }
     }

@@ -1,10 +1,18 @@
 ﻿using GameServer.Metagame.GameRooms;
+using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper.Holders
 {
     public class GameRoomHolder : IGameRoomHolder
     {
-        private Dictionary<Guid, GameRoom> _gameRooms = new Dictionary<Guid, GameRoom>();
+        private readonly Dictionary<Guid, GameRoom> _gameRooms = new Dictionary<Guid, GameRoom>();
+        private readonly ILogger<GameRoomHolder> _log;
+
+        public GameRoomHolder(ILogger<GameRoomHolder> log)
+        {
+            _log = log;
+        }
 
         public int Count => _gameRooms.Count;
      
@@ -20,7 +28,7 @@ namespace GameServer.NetworkWrappper.Holders
                 return room;
 
 
-            Console.WriteLine($"Can't find room with id {id}, all rooms is {string.Join(" ", _gameRooms.Keys)}");
+            _log.ZLogError($"Can't find room with id {id}, all rooms is {string.Join(" ", _gameRooms.Keys)}");
             return null;
         }
 

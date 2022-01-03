@@ -4,6 +4,8 @@ using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
 using GameServer.NetworkWrappper.NetworkProcessors;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
@@ -15,6 +17,7 @@ namespace GameServer.NetworkWrappper
         private readonly IServerSendToClient _serverSend;
         private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
         private readonly IGameManager _gameManager;
+        private readonly ILogger<ServerGameRoomPacketsHandler> _log;
 
         public delegate Task PacketHandler(Guid fromClient, Packet packet);
         private Dictionary<int, PacketHandler> _handlers;
@@ -26,7 +29,7 @@ namespace GameServer.NetworkWrappper
                 { (int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched }
             };
 
-            Console.WriteLine("Game room initialized packets.");
+            _log.ZLogInformation("Game room initialized packets.");
         }
 
         public ServerGameRoomPacketsHandler(IClientHolder clientHolder,
@@ -34,7 +37,8 @@ namespace GameServer.NetworkWrappper
             IServiceProvider serviceProvider,
             IServerSendToClient serverSend,
             IGameRoomDataReceiver  gameRoomDataReceiver,
-            IGameManager gameManager)
+            IGameManager gameManager,
+            ILogger<ServerGameRoomPacketsHandler> log)
         {
             _clientHolder = clientHolder;
             _gameRoomHolder = gameRoomHolder;
@@ -42,7 +46,7 @@ namespace GameServer.NetworkWrappper
             _serverSend = serverSend;
             _gameRoomDataReceiver = gameRoomDataReceiver;
             _gameManager = gameManager;
-
+            _log = log;
             InitializeHandlers();
         }
         public Task StartAsync(CancellationToken cancellationToken)
@@ -67,22 +71,22 @@ namespace GameServer.NetworkWrappper
             }
             else
             {
-                Console.WriteLine($"Error! can't process packer with packet id {packetId}, from game room {fromGameRoom}");
+                _log.ZLogError($"Error! can't process packer with packet id {packetId}, from game room {fromGameRoom}");
             }
         }
 
         private Task GameRoomLaunched(Guid fromGameRoom, Packet packet)
         {
-            Console.WriteLine("Game room laucnhed !");
+            _log.ZLogInformation("Game room laucnhed !");
 
             var clientIdCheck = packet.ReadGuid();
 
-            Console.WriteLine($"Welcome received from id on server {fromGameRoom}, in packet {clientIdCheck}");
-            Console.WriteLine($"{_gameRoomHolder.Get(fromGameRoom)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now game room {fromGameRoom}.");
+            _log.ZLogInformation($"Welcome received from id on server {fromGameRoom}, in packet {clientIdCheck}");
+            _log.ZLogInformation($"{_gameRoomHolder.Get(fromGameRoom)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now game room {fromGameRoom}.");
 
             if (fromGameRoom != clientIdCheck)
             {
-                Console.WriteLine($"Player (ID: {fromGameRoom}) has assumed the wrong client ID ({clientIdCheck})!");
+                _log.ZLogError($"Player (ID: {fromGameRoom}) has assumed the wrong client ID ({clientIdCheck})!");
             }
 
             var creatorId = packet.ReadGuid();
@@ -95,7 +99,7 @@ namespace GameServer.NetworkWrappper
 
             if (creatorOfGameRoom == null)
             {
-                Console.WriteLine($"Error! can't find creator of game room! Mode:{mode} Title:{title} MaxPlayers:{maxPlayerCount} RoomId:{fromGameRoom}");
+                _log.ZLogError($"Error! can't find creator of game room! Mode:{mode} Title:{title} MaxPlayers:{maxPlayerCount} RoomId:{fromGameRoom}");
             }
 
             _gameRoomHolder.Get(fromGameRoom).Data = new GameRoomData

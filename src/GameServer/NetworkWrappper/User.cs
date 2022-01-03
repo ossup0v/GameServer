@@ -5,23 +5,22 @@ using GameServer.Metagame;
 using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Net.Sockets;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
     public class User : IWithId<Guid>
     {
+        private readonly ILogger<User> _log;
         private readonly IServiceProvider _serviceProvider;
-        private bool _isActive = false;
 
-        public NetworkClient Client { get; }
-        public MetagameUser MetagameUser { get; set; }
 
-        public Guid Id { get; }
-
-        public User(Guid id, IServiceProvider serviceProvider)
+        public User(Guid id, ILogger<User> log, IServiceProvider serviceProvider)
         {
             Id = id;
+            _log = log;
             _serviceProvider = serviceProvider;
             Client = new NetworkClient(id);
 
@@ -30,11 +29,14 @@ namespace GameServer.NetworkWrappper
                 _serviceProvider.GetRequiredService<IClientHolder>(),
                 _serviceProvider.GetRequiredService<IMapper>());
         }
+        
+        public NetworkClient Client { get; }
+        public MetagameUser MetagameUser { get; set; }
+        public Guid Id { get; }
 
-        public void ActiveMetagameUser()
+        public void JoinToServer()
         {
-            Console.WriteLine("Metagame user with id " + Id + " created");
-            _isActive = true;
+            _log.ZLogInformation("Metagame user with id " + Id + " join to server!");
         }
 
         public void Connect(TcpClient tcpClient)

@@ -1,8 +1,10 @@
 ﻿using GameServer.Common;
 using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
+using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
@@ -12,15 +14,17 @@ namespace GameServer.NetworkWrappper
         where TValue : class, IWithId<TKey>
     {
         protected readonly IServiceProvider ServiceProvider;
+        protected readonly ILogger<NetworkProcessorBase<THolder, TKey, TValue>> Log;
         protected TcpListener TcpListener;
         protected UdpClient UdpListener;
         protected int MaxClients;
         protected THolder Holder;
 
-        public NetworkProcessorBase(THolder holder, IServiceProvider serviceProvider)
+        public NetworkProcessorBase(THolder holder, IServiceProvider serviceProvider, ILogger<NetworkProcessorBase<THolder, TKey, TValue>> log)
         {
             Holder = holder;
             ServiceProvider = serviceProvider;
+            Log = log;
         }
 
         public Action<Guid, int, Packet> PacketReceived { get; set; } = delegate { };
@@ -60,7 +64,7 @@ namespace GameServer.NetworkWrappper
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending data to {clientEndPoint} via UDP: {ex}");
+                Log.ZLogError($"Error sending data to {clientEndPoint} via UDP: {ex}");
             }
         }
     }

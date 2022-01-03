@@ -1,7 +1,9 @@
 ﻿using GameServer.Common;
 using GameServer.Configs;
 using GameServer.NetworkWrappper.Holders;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using ZLogger;
 
 namespace GameServer.Metagame.GameRooms
 {
@@ -12,17 +14,20 @@ namespace GameServer.Metagame.GameRooms
         private readonly GameServerConfig _gameServerConfig;
         private readonly IServiceProvider _serviceProvider;
         private readonly IGameRoomHolder _gameRoomHolder;
+        private readonly ILogger<RoomManager> _log;
 
         public RoomManager(
             RoomManagerConfig roomManagerConfig, 
             GameServerConfig gameServerConfig, 
             IServiceProvider serviceProvider,
-            IGameRoomHolder gameRoomHolder)
+            IGameRoomHolder gameRoomHolder,
+            ILogger<RoomManager> log)
         {
             _availablePorts = roomManagerConfig.AvailablePorts;
             _gameServerConfig = gameServerConfig;
             _serviceProvider = serviceProvider;
             _gameRoomHolder = gameRoomHolder;
+            _log = log;
         }
 
         public GameRoom? GetRoom(Guid roomId)
@@ -43,7 +48,7 @@ namespace GameServer.Metagame.GameRooms
 
             if (availablePort == 0)
             {
-                Console.WriteLine("All ports is using! can't create room!");
+                _log.ZLogError("All ports is using! can't create room!");
                 return ApiResult.Failed("All ports is using! can't create room!");
             }
             
@@ -56,8 +61,8 @@ namespace GameServer.Metagame.GameRooms
                 title, 
                 maxPlayerCount,
                 creator.Id));
-            
-            Console.WriteLine($"Room lauched on {availablePort} port!");
+
+            _log.ZLogInformation($"Room lauched on {availablePort} port!");
             return ApiResult.Ok;
         }
 
