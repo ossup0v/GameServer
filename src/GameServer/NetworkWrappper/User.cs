@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GameServer.Common;
 using GameServer.DAL;
+using GameServer.DAL.Interfaces;
 using GameServer.Metagame;
 using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;

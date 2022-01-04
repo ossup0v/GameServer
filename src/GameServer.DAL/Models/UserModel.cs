@@ -1,6 +1,6 @@
-﻿namespace GameServer.DAL.DTOs
+﻿namespace GameServer.DAL.Models
 {
-    public class UserDTO
+    public class UserModel
     {
         public Guid Id { get; set; }
         public string Username { get; set; }

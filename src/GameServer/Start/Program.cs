@@ -1,8 +1,8 @@
 ﻿using Cysharp.Text;
 using GameServer.Common;
 using GameServer.Configs;
-using GameServer.DAL;
-using GameServer.DAL.Mongo;
+using GameServer.DAL.InMemory;
+using GameServer.DAL.Interfaces;
 using GameServer.Metagame;
 using GameServer.Metagame.GameRooms;
 using GameServer.NetworkWrappper;
@@ -32,7 +32,7 @@ namespace GameServer
                     .AddSingleton<IServerSendToGameRoom, ServerSendToGameRoom>()
                     .AddSingleton<IClientHolder, ClientHolder>()
                     .AddSingleton<IGameRoomHolder, GameRoomHolder>()
-                    .AddSingleton<IUserRepository, TempUserRepository>()
+                    .AddSingleton<IUserRepository, InMemoryUserRepository>()
                     .AddSingleton<IGameRoomDataSender, GameRoomNetworkProcessor>()
                     .AddSingleton<IGameRoomDataReceiver, GameRoomNetworkProcessor>()
                     .AddSingleton<IClientDataSender, ClientNetworkProcessor>()
@@ -105,7 +105,6 @@ namespace GameServer
                                 }
                             };
 #endif
-
                         }, configureEnableAnsiEscapeCode: true);
 
                     }).Build();

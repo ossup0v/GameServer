@@ -5,12 +5,15 @@ VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer", "GameServer\GameServer.csproj", "{D1737FC6-3D0B-4F3D-901B-F105C014BD0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer.Network", "GameServer.Network\GameServer.Network.csproj", "{91DACB7F-0A2D-49A7-8CFA-E74369EFCEE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer.Network", "GameServer.Network\GameServer.Network.csproj", "{91DACB7F-0A2D-49A7-8CFA-E74369EFCEE0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C5D84571-E673-40A7-B0C7-648E8773E30D}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		BannedSymbols.txt = BannedSymbols.txt
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer.DAL", "GameServer.DAL\GameServer.DAL.csproj", "{0633DAD0-20B8-4200-8F2F-16643EEFEF96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +29,10 @@ Global
 		{91DACB7F-0A2D-49A7-8CFA-E74369EFCEE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91DACB7F-0A2D-49A7-8CFA-E74369EFCEE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91DACB7F-0A2D-49A7-8CFA-E74369EFCEE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0633DAD0-20B8-4200-8F2F-16643EEFEF96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0633DAD0-20B8-4200-8F2F-16643EEFEF96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0633DAD0-20B8-4200-8F2F-16643EEFEF96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0633DAD0-20B8-4200-8F2F-16643EEFEF96}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

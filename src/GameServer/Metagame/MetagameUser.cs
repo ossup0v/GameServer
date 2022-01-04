@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using GameServer.Common;
-using GameServer.DAL;
-using GameServer.DAL.DTOs;
+using GameServer.DAL.Interfaces;
+using GameServer.DAL.Models;
 using GameServer.NetworkWrappper.Holders;
 
 namespace GameServer.Metagame
@@ -64,7 +64,7 @@ namespace GameServer.Metagame
 
         public Task<ApiResult> Register(string login, string password, string username, Guid id)
         {
-            var newUser = new UserDTO { Login = login, Password = password, Username = username, Id = id };
+            var newUser = new UserModel { Login = login, Password = password, Username = username, Id = id };
             Data = _mapper.Map<UserData>(newUser);
 
             _userRepository.AddUser(newUser);
