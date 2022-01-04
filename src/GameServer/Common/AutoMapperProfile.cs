@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GameServer.DAL.DTOs;
+using GameServer.DAL.Models;
 using GameServer.Metagame;
 
 namespace GameServer.Common
@@ -8,7 +8,7 @@ namespace GameServer.Common
     {
         public AutoMapperProfile()
         {
-            CreateMap<UserData, UserDTO>().ReverseMap();
+            CreateMap<UserData, UserModel>().ReverseMap();
         }
     }
 }
