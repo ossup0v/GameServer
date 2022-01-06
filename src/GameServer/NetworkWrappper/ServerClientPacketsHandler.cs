@@ -26,9 +26,11 @@ namespace GameServer.NetworkWrappper
             {
                 { (int)ToServerFromClient.welcomeReceived, WelcomeReceived },
                 { (int)ToServerFromClient.registerUser, RegisterUser },
-                { (int)ToServerFromClient.joinGameRoom, JoinGameRoom},
-                { (int)ToServerFromClient.loginUser, LoginUser},
-                { (int)ToServerFromClient.createGameRoom, CreateGameRoom}
+                { (int)ToServerFromClient.joinGameRoom, JoinGameRoom },
+                { (int)ToServerFromClient.loginUser, LoginUser },
+                { (int)ToServerFromClient.createGameRoom, CreateGameRoom },
+                { (int)ToServerFromClient.startSearchGameRoom, StartSearchGameRoom },
+                { (int)ToServerFromClient.cancelSearchGameRoom, CancelSearchGameRoom }
             };
 
             _log.ZLogInformation("Initialized packets.");
@@ -109,25 +111,42 @@ namespace GameServer.NetworkWrappper
 
         private Task JoinGameRoom(Guid fromClient, Packet packet)
         {
-            Console.WriteLine($"user {fromClient} joined to game!");
-            var roomId = packet.ReadGuid();
-            _gameManager.JoinGameRoom(roomId, _clientHolder.Get(fromClient).MetagameUser);
 
+#warning а фсё, больше не работает
+            _log.ZLogError($"user {fromClient} trying to join room, this is obsole func, can't do this!");
+
+            //Console.WriteLine($"user {fromClient} joined to game!");
+            //var roomId = packet.ReadGuid();
+            //_gameManager.JoinGameRoom(roomId, _clientHolder.Get(fromClient).MetagameUser);
+            //
             return Task.CompletedTask;
         }
 
-        private async Task CreateGameRoom(Guid fromClient, Packet packet)
+        private /*async*/ Task CreateGameRoom(Guid fromClient, Packet packet)
         {
             _log.ZLogInformation($"user {fromClient} creating game room!");
+#warning удоли меня,это больше не используется
+            //var mode = packet.ReadString();
+            //var title = packet.ReadString();
+            //var maxPlayerCount = packet.ReadInt();
+            //
+            //var result = await _gameManager.CreateRoom(_clientHolder.Get(fromClient).MetagameUser, mode, title, maxPlayerCount);
+            //
+            //if (!result.Success)
+            //    _log.ZLogError($"Error! can't create room reson is {result.Message}");
+            return Task.CompletedTask;
+        }
 
-            var mode = packet.ReadString();
-            var title = packet.ReadString();
-            var maxPlayerCount = packet.ReadInt();
+        private Task StartSearchGameRoom(Guid fromClient, Packet packet)
+        {
+            _gameManager.JoinGameRoom(fromClient, _clientHolder.Get(fromClient).MetagameUser);
+            return Task.CompletedTask;
+        }
 
-            var result = await _gameManager.CreateRoom(_clientHolder.Get(fromClient).MetagameUser, mode, title, maxPlayerCount);
-
-            if (!result.Success)
-                _log.ZLogError($"Error! can't create room reson is {result.Message}");
+        private Task CancelSearchGameRoom(Guid fromClient, Packet packet)
+        {
+            _gameManager.LeaveGameRoom(_clientHolder.Get(fromClient).MetagameUser);
+            return Task.CompletedTask;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

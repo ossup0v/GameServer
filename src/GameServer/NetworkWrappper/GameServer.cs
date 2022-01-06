@@ -15,7 +15,6 @@ namespace GameServer.NetworkWrappper
 
         private readonly IServerSendToClient _serverSendToClient;
         private readonly IServerSendToGameRoom _serverSendToGameRoom;
-        private readonly IRoomManager _roomManager;
         private readonly IClientDataReceiver _clientsDataReceiver;
         private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
         private readonly ILogger<GameServer> _log;
@@ -23,7 +22,6 @@ namespace GameServer.NetworkWrappper
         public GameServer(GameServerConfig config,
             IServerSendToClient serverSendToClient,
             IServerSendToGameRoom serverSendToGameRoom,
-            IRoomManager roomManager,
             IClientDataReceiver clientDataReceiver,
             IGameRoomDataReceiver gameRoomDataReceiver,
             ILogger<GameServer> log)
@@ -36,7 +34,6 @@ namespace GameServer.NetworkWrappper
 
             _serverSendToClient = serverSendToClient;
             _serverSendToGameRoom = serverSendToGameRoom;
-            _roomManager = roomManager;
             _clientsDataReceiver = clientDataReceiver;
             _gameRoomDataReceiver = gameRoomDataReceiver;
             _log = log;
@@ -72,7 +69,8 @@ namespace GameServer.NetworkWrappper
 
         private void SendUserData(Guid toClient)
         {
-            _serverSendToClient.RoomList(toClient, _roomManager.Rooms);
+#warning а фсё, больше мне не надо это
+            //_serverSendToClient.RoomList(toClient, _roomManager.Rooms);
         }
     }
 }

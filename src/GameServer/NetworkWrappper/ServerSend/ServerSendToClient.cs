@@ -49,7 +49,7 @@ namespace GameServer.NetworkWrappper
             }
         }
 
-        public void RoomPortToConnect(Guid toClient, int port)
+        public void RoomPortToConnect(Guid toClient, int team, int port)
         {
 
             using (Packet packet = new Packet(ToClient.roomPortToConnect))
@@ -60,6 +60,7 @@ namespace GameServer.NetworkWrappper
 #else
                 packet.Write("3.66.29.169");
 #endif
+                packet.Write(team);
                 packet.Write(port);
 
                 SendTCPData(toClient, packet);

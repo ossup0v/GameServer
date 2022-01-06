@@ -17,6 +17,7 @@ namespace GameServer.NetworkWrappper
         private readonly IServerSendToClient _serverSend;
         private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
         private readonly IGameManager _gameManager;
+        private readonly IMetagameRoomHolder _metagameRoomHolder;
         private readonly ILogger<ServerGameRoomPacketsHandler> _log;
 
         public delegate Task PacketHandler(Guid fromClient, Packet packet);
@@ -26,7 +27,8 @@ namespace GameServer.NetworkWrappper
         {
             _handlers = new Dictionary<int, PacketHandler>()
             {
-                { (int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched }
+                { (int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched },
+                { (int)ToServerFromGameRoom.gameSessionEnded, GameRoomEnd }
             };
 
             _log.ZLogInformation("Game room initialized packets.");
@@ -36,8 +38,9 @@ namespace GameServer.NetworkWrappper
             IGameRoomHolder gameRoomHolder,
             IServiceProvider serviceProvider,
             IServerSendToClient serverSend,
-            IGameRoomDataReceiver  gameRoomDataReceiver,
+            IGameRoomDataReceiver gameRoomDataReceiver,
             IGameManager gameManager,
+            IMetagameRoomHolder metagameRoomHolder,
             ILogger<ServerGameRoomPacketsHandler> log)
         {
             _clientHolder = clientHolder;
@@ -46,6 +49,7 @@ namespace GameServer.NetworkWrappper
             _serverSend = serverSend;
             _gameRoomDataReceiver = gameRoomDataReceiver;
             _gameManager = gameManager;
+            _metagameRoomHolder = metagameRoomHolder;
             _log = log;
             InitializeHandlers();
         }
@@ -79,16 +83,17 @@ namespace GameServer.NetworkWrappper
         {
             _log.ZLogInformation("Game room laucnhed !");
 
-            var clientIdCheck = packet.ReadGuid();
+            var roomIdCheck = packet.ReadGuid();
 
-            _log.ZLogInformation($"Welcome received from id on server {fromGameRoom}, in packet {clientIdCheck}");
+            _log.ZLogInformation($"Welcome received from id on server {fromGameRoom}, in packet {roomIdCheck}");
             _log.ZLogInformation($"{_gameRoomHolder.Get(fromGameRoom)?.Client.tcp.Socket.Client.RemoteEndPoint} connected successfully and is now game room {fromGameRoom}.");
 
-            if (fromGameRoom != clientIdCheck)
+            if (fromGameRoom != roomIdCheck)
             {
-                _log.ZLogError($"Player (ID: {fromGameRoom}) has assumed the wrong client ID ({clientIdCheck})!");
+                _log.ZLogError($"Player (ID: {fromGameRoom}) has assumed the wrong client ID ({roomIdCheck})!");
             }
 
+            var metagameRoomId = packet.ReadGuid();
             var creatorId = packet.ReadGuid();
             var mode = packet.ReadString();
             var title = packet.ReadString();
@@ -109,12 +114,57 @@ namespace GameServer.NetworkWrappper
                 MaxPlayerCount = maxPlayerCount,
                 RoomId = fromGameRoom,
                 Creator = creatorOfGameRoom,
-                Port = gameRoomPort,
-                Users = new List<MetagameUser>()
+                Port = gameRoomPort
             };
+
+            _metagameRoomHolder.Get(metagameRoomId).Start();
 
             if (creatorOfGameRoom != null)
                 _gameManager.JoinGameRoom(fromGameRoom, creatorOfGameRoom);
+
+            return Task.CompletedTask;
+        }
+
+        private Task GameRoomEnd(Guid fromGameRoom, Packet packet)
+        {
+            var metagameRoomId = packet.ReadGuid();
+            var teamsCount = packet.ReadInt();
+            var teamScores = new TeamScore[teamsCount];
+
+            for (var i = 0; i < teamScores.Length; i++)
+            {
+                var playerCount = packet.ReadInt();
+                var playerIds = new Guid[playerCount];
+
+                teamScores[i] = new TeamScore();
+
+                for (int j = 0; j < playerIds.Length; j++)
+                    playerIds[j] = packet.ReadGuid();
+
+
+                teamScores[i] = new TeamScore
+                {
+                    PlayerIds = playerIds,
+                    Team = packet.ReadInt(),
+                    Plase = packet.ReadInt(),
+                    KilledMobs = packet.ReadInt(),
+                    KilledPlayers = packet.ReadInt(),
+                    DeadPlayers = packet.ReadInt()
+                };
+            }
+
+            var metagameRoom = _metagameRoomHolder.Get(metagameRoomId);
+
+            if (metagameRoom == null)
+            {
+                _log.ZLogError($"{nameof(GameRoomEnd)} can't find metagame room");
+                return Task.CompletedTask;
+            }
+
+            metagameRoom.Finish(new GameRoomResult
+            {
+                TeamResult = teamScores.ToDictionary(x => x.Team, x => x)
+            });
 
             return Task.CompletedTask;
         }

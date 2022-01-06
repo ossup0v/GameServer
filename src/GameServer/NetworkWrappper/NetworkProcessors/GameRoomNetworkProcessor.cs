@@ -51,6 +51,8 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             var newGameRoomId = Guid.NewGuid();
             var newGameRoom = new GameRoom(newGameRoomId, ServiceProvider);
 
+            newGameRoom.BanJoin();
+            
             newGameRoom.Connect(client);
             newGameRoom.SubsctibeToReceivePackets(PacketReceived);
 

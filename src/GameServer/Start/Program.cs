@@ -32,6 +32,7 @@ namespace GameServer
                     .AddSingleton<IServerSendToGameRoom, ServerSendToGameRoom>()
                     .AddSingleton<IClientHolder, ClientHolder>()
                     .AddSingleton<IGameRoomHolder, GameRoomHolder>()
+                    .AddSingleton<IMetagameRoomHolder, MetagameRoomHolder>()
                     .AddSingleton<IUserRepository, InMemoryUserRepository>()
                     .AddSingleton<IGameRoomDataSender, GameRoomNetworkProcessor>()
                     .AddSingleton<IGameRoomDataReceiver, GameRoomNetworkProcessor>()

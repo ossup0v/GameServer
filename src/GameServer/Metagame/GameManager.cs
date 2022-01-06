@@ -27,17 +27,15 @@ namespace GameServer.Metagame
         public Task<ApiResult> JoinGameRoom(Guid roomId, MetagameUser user)
         {
             _log.ZLogInformation("User trying to join a game room");
-            var room = _roomManager.GetRoom(roomId);
-            if (room == null)
-            {
-                _log.ZLogError($"User {user?.Data?.Id}-{user?.Data?.Username} can't find room with id {roomId}");
-                return Task.FromResult(ApiResult.Error("Can't create room"));
-            }
-            room.Join(user);
-            _serverSend.RoomPortToConnect(user.Data.Id, room.Data.Port);
-            _log.ZLogInformation($"Sended port {room.Data.Port} to user");
 
-            return Task.FromResult(ApiResult.Ok);
+            return Task.FromResult(_roomManager.JoinGameRoom(user));
+        }
+        
+        public Task<ApiResult> LeaveGameRoom(MetagameUser user)
+        {
+            _log.ZLogInformation("User trying to leave a game room");
+
+            return Task.FromResult(_roomManager.LeaveGameRoom(user));
         }
 
         public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)

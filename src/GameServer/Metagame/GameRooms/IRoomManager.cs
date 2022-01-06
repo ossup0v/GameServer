@@ -4,8 +4,11 @@ namespace GameServer.Metagame.GameRooms
 {
     public interface IRoomManager
     {
-        GameRoom GetRoom(Guid roomId);
+        ApiResult<GameRoom> GetFirstAvailableToJoin();
+        ApiResult<GameRoom> GetRoom(Guid roomId);
         ApiResult CreateRoom(MetagameUser creator, string mode, string title, int maxPlayerCount);
         IEnumerable<GameRoom> Rooms { get; }
+        ApiResult JoinGameRoom(MetagameUser user);
+        ApiResult LeaveGameRoom(MetagameUser user);
     }
 }
