@@ -1,6 +1,5 @@
 ﻿using GameServer.Common;
 using GameServer.Metagame.GameRooms;
-using GameServer.NetworkWrappper;
 using Microsoft.Extensions.Logging;
 using ZLogger;
 
@@ -41,10 +40,5 @@ namespace GameServer.Metagame
 
             return Task.FromResult(_roomManager.LeaveGameRoom(user));
         }
-
-        //public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)
-        //{
-        //    return Task.FromResult(_roomManager.CreateRoom(user, mode, title, maxPlayerCount));
-        //}
     }
 }

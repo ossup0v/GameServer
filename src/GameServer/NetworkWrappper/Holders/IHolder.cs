@@ -6,7 +6,7 @@ namespace GameServer.NetworkWrappper.Holders
         where TKey : struct 
         where TValue : class, IWithId<TKey>
     {
-        TValue? Get(TKey id);
+        TValue Get(TKey id);
         IEnumerable<TValue> GetAll();
         void Remove(TKey key);
         void AddNew(TValue @new);

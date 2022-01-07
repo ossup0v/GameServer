@@ -25,13 +25,12 @@ namespace GameServer.NetworkWrappper.Holders
             return _clients.Values;
         }
 
-        public User? Get(Guid clientId)
+        public User Get(Guid clientId)
         {
             if (_clients.TryGetValue(clientId, out var client))
                 return client;
 
-
-            _log.ZLogError($"Can't find client with id {clientId}, all clients is {string.Join(" ", _clients.Keys)}");
+            _log.ZLogError($"Can't find client with id {clientId}, all clients is {string.Join(" ", _clients.Keys)}, call stack {Environment.StackTrace}");
             return null;
         }
 

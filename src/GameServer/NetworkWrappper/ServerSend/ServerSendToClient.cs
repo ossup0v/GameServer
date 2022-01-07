@@ -77,13 +77,18 @@ namespace GameServer.NetworkWrappper
                 {
                     packet.Write(room.Data.RoomId);
                     packet.Write(room.Data.Port);
-                    packet.Write(room.Data.Creator?.Data?.Username ?? "kto ento");
-                    packet.Write(room.Data.Mode);
-                    packet.Write(room.Data.Title);
                     packet.Write(room.Data.MaxPlayerCount);
                     packet.Write(room.Data.Users.Count);
                 }
 
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public void GameRoomSessionEnd(Guid toClient)
+        {
+            using (Packet packet = new Packet(ToClient.gameRoomSessionEnd))
+            {
                 SendTCPData(toClient, packet);
             }
         }

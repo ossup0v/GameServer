@@ -17,17 +17,13 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
 
         private bool _isReadyToStart => Users.Count >= Constants.CountOfPlayersToStartGameRoom;
         public Guid Id { get; }
-        public string Mode { get; }
-        public string Title { get; }
         public int Port { get; }
         public bool IsAvailableToJoin { get; private set; } = true;
         public Dictionary<Guid, MetagameUser> Users { get; set; } = new Dictionary<Guid, MetagameUser>();
 
-        public MetagameGameRoom(Guid id, int port, string mode, string title, IServiceProvider serviceProvider)
+        public MetagameGameRoom(Guid id, int port, IServiceProvider serviceProvider)
         {
             Id = id;
-            Mode = mode;
-            Title = title;
             Port = port;
             _serviceProvider = serviceProvider;
             _sendToClient = serviceProvider.GetRequiredService<IServerSendToClient>();
@@ -35,7 +31,7 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
             _gameServerConfig= serviceProvider.GetRequiredService<GameServerConfig>();
         }
 
-        public void Start()
+        public void ConnectPlayers()
         {
             var index = 0;
             foreach (var userId in Users.Keys)
@@ -47,15 +43,21 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
 
         public void Finish(GameRoomResult result)
         {
+            _log.ZLogInformation($"Server receive game room results");
             foreach (var teamResult in result.TeamResult.Values)
             {
-                _log.ZLogInformation($"Server receive game room results {teamResult}");
+                _log.ZLogInformation($"{teamResult}");
+            }
+
+            foreach (var user in Users.Values)
+            {
+                _sendToClient.GameRoomSessionEnd(user.Id);
             }
 
             //TODO add to player inventory rewards
         }
 
-        public Task<ApiResult> Join(MetagameUser user)
+        public Task<ApiResult> JoinAndTryLaunchGameRoom(MetagameUser user)
         {
             if (!IsAvailableToJoin)
             {
@@ -76,35 +78,30 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
             _log.ZLogInformation($"User {user.Id} {user.Data?.Username} joined to room {Id}. {Users.Count}/{Constants.CountOfPlayersToStartGameRoom}");
 
             if (_isReadyToStart)
-                StartGameRoom();
+                LaunchGameRoom();
 
             return Task.FromResult(ApiResult.Ok);
         }
 
-        private void StartGameRoom()
+        private void LaunchGameRoom()
         {
             IsAvailableToJoin = false;
 
             Process.Start(Constants.RoomExePath, GetGameRoomParams(
                 Port,
                 Id,
-                Mode,
-                Title,
-                Constants.CountOfPlayersToStartGameRoom,
-#warning тодо удалить это старьё
-                Guid.NewGuid()));
+                Constants.CountOfPlayersToStartGameRoom));
         }
 
-        private string GetGameRoomParams(int roomPort, Guid metagameRoomId, string mode, string title, int maxPlayerCount, Guid creatorId)
+        private string GetGameRoomParams(int roomPort, Guid metagameRoomId, int maxPlayerCount)
         {
-            return $"{roomPort};{_gameServerConfig.GameRoomPort};{metagameRoomId};{mode};{title};{maxPlayerCount};{creatorId}";
+            return $"{roomPort};{_gameServerConfig.GameRoomPort};{metagameRoomId};{maxPlayerCount}";
         }
 
         public Task<ApiResult> Leave(MetagameUser user)
         {
             Users.Remove(user.Id);
             return Task.FromResult(ApiResult.Ok);
-
         }
 
         private int GetUserTeam(int index)

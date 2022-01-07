@@ -25,11 +25,8 @@ namespace GameServer.NetworkWrappper
 
         private void InitializeHandlers()
         {
-            _handlers = new Dictionary<int, PacketHandler>()
-            {
-                { (int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched },
-                { (int)ToServerFromGameRoom.gameSessionEnded, GameRoomEnd }
-            };
+            _handlers.Add((int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched);
+            _handlers.Add((int)ToServerFromGameRoom.gameSessionEnded, GameRoomEnd);
 
             _log.ZLogInformation("Game room initialized packets.");
         }
@@ -51,6 +48,8 @@ namespace GameServer.NetworkWrappper
             _gameManager = gameManager;
             _metagameRoomHolder = metagameRoomHolder;
             _log = log;
+            _handlers = new Dictionary<int, PacketHandler>();
+            
             InitializeHandlers();
         }
         public Task StartAsync(CancellationToken cancellationToken)
@@ -94,33 +93,17 @@ namespace GameServer.NetworkWrappper
             }
 
             var metagameRoomId = packet.ReadGuid();
-            var creatorId = packet.ReadGuid();
-            var mode = packet.ReadString();
-            var title = packet.ReadString();
             var maxPlayerCount = packet.ReadInt();
             var gameRoomPort = packet.ReadInt();
 
-            var creatorOfGameRoom = _clientHolder.Get(creatorId)?.MetagameUser;
-
-            if (creatorOfGameRoom == null)
-            {
-                _log.ZLogError($"Error! can't find creator of game room! Mode:{mode} Title:{title} MaxPlayers:{maxPlayerCount} RoomId:{fromGameRoom}");
-            }
-
             _gameRoomHolder.Get(fromGameRoom).Data = new GameRoomData
             {
-                Title = title,
-                Mode = mode,
                 MaxPlayerCount = maxPlayerCount,
                 RoomId = fromGameRoom,
-                Creator = creatorOfGameRoom,
                 Port = gameRoomPort
             };
 
-            _metagameRoomHolder.Get(metagameRoomId).Start();
-
-            if (creatorOfGameRoom != null)
-                _gameManager.JoinGameRoom(fromGameRoom, creatorOfGameRoom);
+            _metagameRoomHolder.Get(metagameRoomId).ConnectPlayers();
 
             return Task.CompletedTask;
         }

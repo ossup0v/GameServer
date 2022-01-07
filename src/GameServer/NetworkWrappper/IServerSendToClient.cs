@@ -9,5 +9,6 @@ namespace GameServer.NetworkWrappper
         void RoomPortToConnect(Guid id, int team, int port);
         void RoomList(Guid userId, IEnumerable<GameRoom> rooms);
         void Welcome(Guid newGuid, string message);
+        void GameRoomSessionEnd(Guid id);
     }
 }

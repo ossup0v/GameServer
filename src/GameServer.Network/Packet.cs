@@ -37,11 +37,12 @@ namespace GameServer.Network
         botHit,
         ratingTableUpdateKilledBots,
         playerScale,
-        gameRoomSessionEnd,
 
         //server packets
         roomPortToConnect,
         roomList,
+        gameRoomSessionEnd,
+
         response
     }
 

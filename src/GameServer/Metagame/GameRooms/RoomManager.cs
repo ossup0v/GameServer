@@ -10,32 +10,20 @@ namespace GameServer.Metagame.GameRooms
     public class RoomManager : IRoomManager
     {
         private readonly List<int> _availablePorts;
-        public IEnumerable<GameRoom> Rooms => _gameRoomHolder.GetAll();
-        private readonly GameServerConfig _gameServerConfig;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IGameRoomHolder _gameRoomHolder;
         private readonly IMetagameRoomHolder _metagameRoomHolder;
         private readonly ILogger<RoomManager> _log;
 
         public RoomManager(
             RoomManagerConfig roomManagerConfig,
-            GameServerConfig gameServerConfig,
             IServiceProvider serviceProvider,
-            IGameRoomHolder gameRoomHolder,
             IMetagameRoomHolder metagameRoomHolder,
             ILogger<RoomManager> log)
         {
             _availablePorts = roomManagerConfig.AvailablePorts;
-            _gameServerConfig = gameServerConfig;
             _serviceProvider = serviceProvider;
-            _gameRoomHolder = gameRoomHolder;
             _metagameRoomHolder = metagameRoomHolder;
             _log = log;
-        }
-
-        public ApiResult<GameRoom> GetRoom(Guid roomId)
-        {
-            return ApiResult<GameRoom>.OK(_gameRoomHolder.Get(roomId));
         }
 
         public ApiResult<MetagameGameRoom> GetFirstAvailableToJoin()
@@ -63,14 +51,9 @@ namespace GameServer.Metagame.GameRooms
 
             _availablePorts.Remove(availablePort);
 
-            const string Mode = "Created by server mode";
-            const string Title = "Created by server";
-
             var newMetagameRoom = new MetagameGameRoom(
                 roomId,
                 availablePort,
-                Mode,
-                Title,
                 _serviceProvider);
 
             _metagameRoomHolder.AddNew(newMetagameRoom);
@@ -85,7 +68,7 @@ namespace GameServer.Metagame.GameRooms
             if (!result.Success)
                 return result;
 
-            result.Value.Join(user);
+            result.Value.JoinAndTryLaunchGameRoom(user);
 
             return ApiResult.Ok;
         }

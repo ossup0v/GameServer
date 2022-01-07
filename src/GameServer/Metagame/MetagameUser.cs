@@ -12,7 +12,7 @@ namespace GameServer.Metagame
         public readonly Guid Id;
         private readonly IClientHolder _clientHolder;
         private readonly IMapper _mapper;
-        public UserData Data;
+        public UserData Data = new UserData();
 
         public MetagameUser(Guid id, IUserRepository userRepository, IClientHolder clientHolder, IMapper mapper)
         {
@@ -22,51 +22,13 @@ namespace GameServer.Metagame
             _mapper = mapper;
         }
 
-        public void GetInventory()
-        {
-
-        }
-
-        public async Task<ApiResult<UserData>> AutorizeUser(string login, string password)
-        {
-            var existsUser = await _userRepository.GetUserByLogin(login);
-
-            if (existsUser.Password == password)
-            {
-                var user = new UserData
-                {
-                    Password = existsUser.Password,
-                    Id = existsUser.Id,
-                    Username = existsUser.Username,
-                    Login = existsUser.Login,
-                };
-
-                return ApiResult<UserData>.OK(user);
-            }
-            else
-            {
-                return ApiResult<UserData>.Failed("Can't login user");
-            }
-        }
-
-        public async Task<ApiResult> TryJoin(string login, string password)
-        {
-            var user = await AutorizeUser(login, password);
-            if (user != null)
-            {
-                return ApiResult.Ok;
-            }
-            else
-            {
-                return ApiResult.Failed("Can't login user");
-            }
-        }
-
         public Task<ApiResult> Register(string login, string password, string username, Guid id)
         {
             var newUser = new UserModel { Login = login, Password = password, Username = username, Id = id };
             Data = _mapper.Map<UserData>(newUser);
-
+            
+            UserJoined();
+            
             _userRepository.AddUser(newUser);
             return Task.FromResult(ApiResult.Ok);
         }
@@ -84,10 +46,21 @@ namespace GameServer.Metagame
             {
                 Data = _mapper.Map<UserData>(existsUser);
                 _clientHolder.Get(id).MetagameUser = this;
+                UserJoined();
                 return ApiResult.Ok;
             }
 
             return ApiResult.Failed($"User with login {login}, not have password {password}");
+        }
+
+        private void UserJoined()
+        {
+            Data.IsUserLogged = true;
+        }
+
+        private void UserExit()
+        {
+            Data.IsUserLogged = false;
         }
     }
 
@@ -98,6 +71,5 @@ namespace GameServer.Metagame
         public string Login { get; set; }
         public string Password { get; set; }
         public bool IsUserLogged { get; set; }
-        public int Team { get; set; }
     }
 }

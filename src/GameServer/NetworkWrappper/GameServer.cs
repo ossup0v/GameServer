@@ -59,18 +59,11 @@ namespace GameServer.NetworkWrappper
         private void OnNewClientAdded(Guid newClientId)
         {
             _serverSendToClient.Welcome(newClientId, "Welcome to Server!");
-            SendUserData(newClientId);
         }
 
         private void OnNewGameRoomAdded(Guid newGameRoomId)
         {
             _serverSendToGameRoom.GameRoomData(newGameRoomId);
-        }
-
-        private void SendUserData(Guid toClient)
-        {
-#warning а фсё, больше мне не надо это
-            //_serverSendToClient.RoomList(toClient, _roomManager.Rooms);
         }
     }
 }
