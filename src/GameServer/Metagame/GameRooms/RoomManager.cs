@@ -1,18 +1,15 @@
 ﻿using GameServer.Common;
 using GameServer.Configs;
 using GameServer.Metagame.GameRooms.MetagameRooms;
-using GameServer.NetworkWrappper;
 using GameServer.NetworkWrappper.Holders;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using ZLogger;
 
 namespace GameServer.Metagame.GameRooms
 {
     public class RoomManager : IRoomManager
     {
-        private readonly List<int> _availablePorts; //new List<int>() { 26952, 26953, 26955, 26956, 26957, 26958, 26959, 26960 }
+        private readonly List<int> _availablePorts;
         public IEnumerable<GameRoom> Rooms => _gameRoomHolder.GetAll();
         private readonly GameServerConfig _gameServerConfig;
         private readonly IServiceProvider _serviceProvider;
@@ -41,19 +38,18 @@ namespace GameServer.Metagame.GameRooms
             return ApiResult<GameRoom>.OK(_gameRoomHolder.Get(roomId));
         }
 
-        public ApiResult<GameRoom> GetFirstAvailableToJoin()
+        public ApiResult<MetagameGameRoom> GetFirstAvailableToJoin()
         {
-            var existsRoom = _gameRoomHolder.GetAll().FirstOrDefault(x => x.IsAvailableToJoin)
+            var existsRoom = _metagameRoomHolder.GetAll().FirstOrDefault(x => x.IsAvailableToJoin)
                 ?? CreateRoom().Value;
 
             if (existsRoom != null)
-                return ApiResult<GameRoom>.OK(existsRoom);
+                return ApiResult<MetagameGameRoom>.OK(existsRoom);
 
-            return ApiResult<GameRoom>.Error("Can't crate room for join");
-
+            return ApiResult<MetagameGameRoom>.Error("Can't crate room for join");
         }
 
-        public ApiResult CreateRoom(MetagameUser creator, string mode, string title, int maxPlayerCount)
+        private ApiResult<MetagameGameRoom> CreateRoom()
         {
             var roomId = Guid.NewGuid();
 
@@ -62,33 +58,7 @@ namespace GameServer.Metagame.GameRooms
             if (availablePort == 0)
             {
                 _log.ZLogError("All ports is using! can't create room!");
-                return ApiResult.Failed("All ports is using! can't create room!");
-            }
-
-            _availablePorts.Remove(availablePort);
-
-            Process.Start(Constants.RoomExePath, GetGameRoomParams(
-                availablePort,
-                roomId,
-                mode,
-                title,
-                maxPlayerCount,
-                creator.Id));
-
-            _log.ZLogInformation($"Room lauched on {availablePort} port!");
-            return ApiResult.Ok;
-        }
-
-        private ApiResult<GameRoom> CreateRoom()
-        {
-            var roomId = Guid.NewGuid();
-
-            var availablePort = _availablePorts.FirstOrDefault();
-
-            if (availablePort == 0)
-            {
-                _log.ZLogError("All ports is using! can't create room!");
-                return ApiResult<GameRoom>.Failed("All ports is using! can't create room!");
+                return ApiResult<MetagameGameRoom>.Failed("All ports is using! can't create room!");
             }
 
             _availablePorts.Remove(availablePort);
@@ -96,29 +66,16 @@ namespace GameServer.Metagame.GameRooms
             const string Mode = "Created by server mode";
             const string Title = "Created by server";
 
-            var newGameRoom = new GameRoom(roomId, _serviceProvider)
-            {
-                Data = new GameRoomData()
-                {
-                    RoomId = roomId,
-                    MaxPlayerCount = 12,
-                    Port = availablePort,
-                    Title = Title,
-                    Mode = Mode
-                }
-            };
+            var newMetagameRoom = new MetagameGameRoom(
+                roomId,
+                availablePort,
+                Mode,
+                Title,
+                _serviceProvider);
 
-            _metagameRoomHolder.AddNew(new MetagameGameRoom(roomId, availablePort, _serviceProvider)
-            {
-                Users = newGameRoom.Data.Users
-            });
+            _metagameRoomHolder.AddNew(newMetagameRoom);
 
-            return ApiResult<GameRoom>.OK(newGameRoom);
-        }
-
-        private string GetGameRoomParams(int roomPort, Guid roomId, string mode, string title, int maxPlayerCount, Guid creatorId)
-        {
-            return $"{roomPort};{_gameServerConfig.GameRoomPort};{roomId};{mode};{title};{maxPlayerCount};{creatorId}";
+            return ApiResult<MetagameGameRoom>.OK(newMetagameRoom);
         }
 
         public ApiResult JoinGameRoom(MetagameUser user)
@@ -135,7 +92,7 @@ namespace GameServer.Metagame.GameRooms
 
         public ApiResult LeaveGameRoom(MetagameUser user)
         {
-            var rooms = _gameRoomHolder.GetAll().Where(x => x.Data.Users.ContainsKey(user.Id));
+            var rooms = _metagameRoomHolder.GetAll().Where(x => x.Users.ContainsKey(user.Id));
 
             if (rooms == null || !rooms.Any())
             {
@@ -144,14 +101,24 @@ namespace GameServer.Metagame.GameRooms
             }
 
             if (rooms.Count() > 1)
-            { 
-                _log.ZLogError($"User {user} joined in multiple game. game ids {string.Join(" ", rooms.Select(x =>x.Id))}");
+            {
+                _log.ZLogError($"User {user} joined in multiple game. game ids {string.Join(" ", rooms.Select(x => x.Id))}");
             }
 
             foreach (var room in rooms)
             {
                 room.Leave(user);
             }
+
+            return ApiResult.Ok;
+        }
+
+        public ApiResult GameRoomSessionEnd(int port)
+        {
+            if (_availablePorts.Contains(port))
+                _log.ZLogError($"Port {port} is already available, all available port {string.Join(" ", _availablePorts)}");
+            else
+                _availablePorts.Add(port);
 
             return ApiResult.Ok;
         }

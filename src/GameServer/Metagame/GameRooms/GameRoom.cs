@@ -53,56 +53,10 @@ namespace GameServer.Metagame.GameRooms
             Client.tcp.Connect(tcpClient, Client);
         }
 
-        private Task<ApiResult> StartGameRoom()
-        {
-            IsAvailableToJoin = false;
-
-            Process.Start(Constants.RoomExePath, GetGameRoomParams(
-               Data.Port,
-               Data.RoomId,
-               Data.Mode,
-               Data.Title,
-               Data.MaxPlayerCount,
-               Data.Creator?.Id ?? Guid.NewGuid()));
-
-            return Task.FromResult(ApiResult.Ok);
-        }
-
-        public Task<ApiResult> Join(MetagameUser user)
-        {
-            if (!IsAvailableToJoin)
-            {
-                _log.ZLogWarning($"User {user.Id} {user.Data?.Username} trying to join in room {Data}, but room is not available to join");
-
-                return Task.FromResult(ApiResult.Failed("Can't join game"));
-            }
-
-            if (Data.Users.ContainsKey(user.Id))
-            { 
-                _log.ZLogWarning($"User {user.Id} {user.Data?.Username} trying to join in room {Data}, but already joined into game");
-                
-                return Task.FromResult(ApiResult.Failed("Already joined into game"));
-            }
-
-            Data.Users.Add(user.Id, user);
-
-            _log.ZLogInformation($"User {user.Id} {user.Data?.Username} joined to room {Data}. {Data.Users.Count}/{_countOfUsersToStart}");
-
-            if (_isReadyToStart)
-                StartGameRoom();
-
-            return Task.FromResult(ApiResult.Ok);
-        }
-
         public Task<ApiResult> Leave(MetagameUser user)
         {
             Data.Users.Remove(user.Id);
             return Task.FromResult(ApiResult.Ok);
-        }
-
-        private string GetGameRoomParams(int roomPort, Guid metagameRoomId, string mode, string title, int maxPlayerCount, Guid creatorId)
-        {
-            return $"{roomPort};{_gameServerConfig.GameRoomPort};{metagameRoomId};{mode};{title};{maxPlayerCount};{creatorId}";
         }
     }
 }

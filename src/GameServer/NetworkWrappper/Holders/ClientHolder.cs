@@ -34,6 +34,11 @@ namespace GameServer.NetworkWrappper.Holders
             _log.ZLogError($"Can't find client with id {clientId}, all clients is {string.Join(" ", _clients.Keys)}");
             return null;
         }
+
+        public void Remove(Guid key)
+        {
+            _clients.Remove(key);
+        }
     }
 
     public interface IClientHolder : IHolder<Guid, User> { }

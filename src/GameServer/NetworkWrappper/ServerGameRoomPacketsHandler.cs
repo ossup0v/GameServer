@@ -127,6 +127,7 @@ namespace GameServer.NetworkWrappper
 
         private Task GameRoomEnd(Guid fromGameRoom, Packet packet)
         {
+            var port = packet.ReadInt();
             var metagameRoomId = packet.ReadGuid();
             var teamsCount = packet.ReadInt();
             var teamScores = new TeamScore[teamsCount];
@@ -165,6 +166,12 @@ namespace GameServer.NetworkWrappper
             {
                 TeamResult = teamScores.ToDictionary(x => x.Team, x => x)
             });
+
+            _metagameRoomHolder.Remove(metagameRoomId);
+
+            _gameManager.GameRoomSessionEnd(port);
+
+            _gameRoomHolder.Remove(fromGameRoom);
 
             return Task.CompletedTask;
         }

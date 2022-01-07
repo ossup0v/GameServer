@@ -8,6 +8,7 @@ namespace GameServer.NetworkWrappper.Holders
     {
         TValue? Get(TKey id);
         IEnumerable<TValue> GetAll();
+        void Remove(TKey key);
         void AddNew(TValue @new);
         int Count { get; }
     }

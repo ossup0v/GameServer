@@ -36,6 +36,11 @@ namespace GameServer.NetworkWrappper.Holders
         {
             return _gameRooms.Values;
         }
+
+        public void Remove(Guid key)
+        {
+            _gameRooms.Remove(key);
+        }
     }
 
     public interface IGameRoomHolder : IHolder<Guid, GameRoom> { }

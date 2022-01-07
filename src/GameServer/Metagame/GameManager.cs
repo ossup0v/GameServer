@@ -8,20 +8,24 @@ namespace GameServer.Metagame
 {
     public class GameManager : IGameManager
     {
-        private readonly IServerSendToClient _serverSend;
         private readonly IServiceProvider _serviceProvider;
         private readonly IRoomManager _roomManager;
         private readonly ILogger<GameManager> _log;
 
-        public GameManager(IServerSendToClient serverSend, 
-            IServiceProvider serviceProvider,
+        public GameManager(IServiceProvider serviceProvider,
             IRoomManager roomManager,
             ILogger<GameManager> log)
         {
-            _serverSend = serverSend;
             _serviceProvider = serviceProvider;
             _roomManager = roomManager;
             _log = log;
+        }
+
+        public Task<ApiResult> GameRoomSessionEnd(int port)
+        {
+            _log.ZLogInformation($"Port {port} is available now");
+         
+            return Task.FromResult(_roomManager.GameRoomSessionEnd(port));
         }
 
         public Task<ApiResult> JoinGameRoom(Guid roomId, MetagameUser user)
@@ -38,9 +42,9 @@ namespace GameServer.Metagame
             return Task.FromResult(_roomManager.LeaveGameRoom(user));
         }
 
-        public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)
-        {
-            return Task.FromResult(_roomManager.CreateRoom(user, mode, title, maxPlayerCount));
-        }
+        //public Task<ApiResult> CreateRoom(MetagameUser user, string mode, string title, int maxPlayerCount)
+        //{
+        //    return Task.FromResult(_roomManager.CreateRoom(user, mode, title, maxPlayerCount));
+        //}
     }
 }
