@@ -1,6 +1,7 @@
 ﻿using GameServer.Common;
 using GameServer.Network;
-using GameServer.NetworkWrappper;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Net.Sockets;
 
 namespace GameServer.Metagame.GameRooms
@@ -8,19 +9,22 @@ namespace GameServer.Metagame.GameRooms
     public class GameRoom : IWithId<Guid>
     {
         private readonly IServiceProvider _serviceProvider;
-        
+        private readonly ILogger<GameRoom> _log;
+
         public GameRoom(Guid id, IServiceProvider serviceProvider)
         {
             Id = id;
+            Data.RoomId = id;
             _serviceProvider = serviceProvider;
+
+            _log = _serviceProvider.GetRequiredService<ILogger<GameRoom>>();
 
             Client = new NetworkClient(id);
         }
 
         public Guid Id { get; }
-        public GameRoomData Data { get; set; }
+        public GameRoomData Data { get; set; } = new GameRoomData();
         public NetworkClient Client { get; set; }
-        public bool IsAvailableToJoin { get; set; } = true;
 
         public void SubsctibeToReceivePackets(Action<Guid, int, Packet> callback)
         {
@@ -33,25 +37,10 @@ namespace GameServer.Metagame.GameRooms
             Client.tcp.Connect(tcpClient, Client);
         }
 
-        public Task<ApiResult> RoomStarted()
+        public Task<ApiResult> Leave(MetagameUser user)
         {
-            //connect here all users
-         
+            Data.Users.Remove(user.Id);
             return Task.FromResult(ApiResult.Ok);
         }
-
-        public Task<ApiResult> Join(MetagameUser user)
-        {
-            Data.Users.Add(user);
-            
-            //notify others users here - user is joined
-
-            return Task.FromResult(ApiResult.Ok);
-        }
-
-        public void Stop()
-        {
-
-        } 
     }
 }

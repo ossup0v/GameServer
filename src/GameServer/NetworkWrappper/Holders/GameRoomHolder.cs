@@ -21,20 +21,23 @@ namespace GameServer.NetworkWrappper.Holders
             _gameRooms.Add(@new.Id, @new);
         }
 
-        public GameRoom? Get(Guid id)
+        public GameRoom Get(Guid id)
         {
-
             if (_gameRooms.TryGetValue(id, out var room))
                 return room;
 
-
-            _log.ZLogError($"Can't find room with id {id}, all rooms is {string.Join(" ", _gameRooms.Keys)}");
+            _log.ZLogError($"Can't find game room with id {id}, all rooms is {string.Join(" ", _gameRooms.Keys)}, call stack {Environment.StackTrace}"); 
             return null;
         }
 
         public IEnumerable<GameRoom> GetAll()
         {
             return _gameRooms.Values;
+        }
+
+        public void Remove(Guid key)
+        {
+            _gameRooms.Remove(key);
         }
     }
 

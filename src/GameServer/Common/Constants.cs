@@ -8,5 +8,9 @@
 #else
         public static string RoomExePath = @"Server/Server.x86_64";
 #endif
+
+        public static int CountOfPlayersToStartGameRoom = 4;
+
+        public static int TeamCount = 2;
     }
 }

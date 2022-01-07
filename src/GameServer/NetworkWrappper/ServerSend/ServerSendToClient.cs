@@ -49,7 +49,7 @@ namespace GameServer.NetworkWrappper
             }
         }
 
-        public void RoomPortToConnect(Guid toClient, int port)
+        public void RoomPortToConnect(Guid toClient, int team, int port)
         {
 
             using (Packet packet = new Packet(ToClient.roomPortToConnect))
@@ -60,6 +60,7 @@ namespace GameServer.NetworkWrappper
 #else
                 packet.Write("3.66.29.169");
 #endif
+                packet.Write(team);
                 packet.Write(port);
 
                 SendTCPData(toClient, packet);
@@ -76,13 +77,18 @@ namespace GameServer.NetworkWrappper
                 {
                     packet.Write(room.Data.RoomId);
                     packet.Write(room.Data.Port);
-                    packet.Write(room.Data.Creator?.Data?.Username ?? "kto ento");
-                    packet.Write(room.Data.Mode);
-                    packet.Write(room.Data.Title);
                     packet.Write(room.Data.MaxPlayerCount);
                     packet.Write(room.Data.Users.Count);
                 }
 
+                SendTCPData(toClient, packet);
+            }
+        }
+
+        public void GameRoomSessionEnd(Guid toClient)
+        {
+            using (Packet packet = new Packet(ToClient.gameRoomSessionEnd))
+            {
                 SendTCPData(toClient, packet);
             }
         }

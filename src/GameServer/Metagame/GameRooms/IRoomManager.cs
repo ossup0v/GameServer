@@ -1,11 +1,13 @@
 ﻿using GameServer.Common;
+using GameServer.Metagame.GameRooms.MetagameRooms;
 
 namespace GameServer.Metagame.GameRooms
 {
     public interface IRoomManager
     {
-        GameRoom GetRoom(Guid roomId);
-        ApiResult CreateRoom(MetagameUser creator, string mode, string title, int maxPlayerCount);
-        IEnumerable<GameRoom> Rooms { get; }
+        ApiResult<MetagameGameRoom> GetFirstAvailableToJoin();
+        ApiResult JoinGameRoom(MetagameUser user);
+        ApiResult LeaveGameRoom(MetagameUser user);
+        ApiResult GameRoomSessionEnd(int port);
     }
 }

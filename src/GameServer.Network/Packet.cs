@@ -41,6 +41,8 @@ namespace GameServer.Network
         //server packets
         roomPortToConnect,
         roomList,
+        gameRoomSessionEnd,
+
         response
     }
 
@@ -67,12 +69,15 @@ namespace GameServer.Network
         registerUser,
         joinGameRoom,
         loginUser,
-        createGameRoom
+        createGameRoom,
+        startSearchGameRoom,
+        cancelSearchGameRoom
     }
 
     public enum ToServerFromGameRoom
     {
-        gameRoomLaunched = 1
+        gameRoomLaunched = 1,
+        gameSessionEnded 
     }
 
     public class Packet : IDisposable

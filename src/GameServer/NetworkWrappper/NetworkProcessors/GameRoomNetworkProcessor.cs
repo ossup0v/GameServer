@@ -17,12 +17,12 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
         
         public void SendDataTCP(Guid toRoom, Packet packet)
         {
-            Holder.Get(toRoom)?.Client.tcp.SendData(packet);
+            Holder.Get(toRoom).Client.tcp.SendData(packet);
         }
 
         public void SendDataUDP(Guid toRoom, Packet packet)
         {
-            SendUDPData(Holder.Get(toRoom)?.Client.udp?.EndPoint, packet);
+            SendUDPData(Holder.Get(toRoom).Client.udp.EndPoint, packet);
         }
 
         protected override void TCPConnectCallback(IAsyncResult result)

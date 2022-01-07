@@ -22,21 +22,20 @@ namespace GameServer.NetworkWrappper
 
         private void InitializeHandlers()
         {
-            _handlers = new Dictionary<int, PacketHandler>()
-            {
-                { (int)ToServerFromClient.welcomeReceived, WelcomeReceived },
-                { (int)ToServerFromClient.registerUser, RegisterUser },
-                { (int)ToServerFromClient.joinGameRoom, JoinGameRoom},
-                { (int)ToServerFromClient.loginUser, LoginUser},
-                { (int)ToServerFromClient.createGameRoom, CreateGameRoom}
-            };
+            _handlers.Add((int)ToServerFromClient.welcomeReceived, WelcomeReceived);
+            _handlers.Add((int)ToServerFromClient.registerUser, RegisterUser);
+            _handlers.Add((int)ToServerFromClient.joinGameRoom, JoinGameRoom);
+            _handlers.Add((int)ToServerFromClient.loginUser, LoginUser);
+            _handlers.Add((int)ToServerFromClient.createGameRoom, CreateGameRoom);
+            _handlers.Add((int)ToServerFromClient.startSearchGameRoom, StartSearchGameRoom);
+            _handlers.Add((int)ToServerFromClient.cancelSearchGameRoom, CancelSearchGameRoom);
 
             _log.ZLogInformation("Initialized packets.");
         }
 
         public ServerClientPacketsHandler(IClientHolder clientHolder,
             IServiceProvider serviceProvider,
-            IServerSendToClient serverSend, 
+            IServerSendToClient serverSend,
             IClientDataReceiver dataReceiver,
             IGameManager gameManager,
             ILogger<ServerClientPacketsHandler> log)
@@ -48,6 +47,7 @@ namespace GameServer.NetworkWrappper
             _gameManager = gameManager;
             _log = log;
 
+            _handlers = new Dictionary<int, PacketHandler>();
             InitializeHandlers();
         }
 
@@ -75,7 +75,7 @@ namespace GameServer.NetworkWrappper
                 _log.ZLogError($"Player (ID: {fromClient}) has assumed the wrong client ID ({clientIdCheck})!");
             }
 
-            _clientHolder.Get(fromClient)?.JoinToServer();
+            _clientHolder.Get(fromClient).JoinToServer();
 
             return Task.CompletedTask;
         }
@@ -88,8 +88,8 @@ namespace GameServer.NetworkWrappper
             var username = packet.ReadString();
 
             _log.ZLogInformation($"User registered with {login}: {password}");
-            
-            var result = await _clientHolder.Get(fromClient)?.MetagameUser.Register(login, password, username, fromClient);
+
+            var result = await _clientHolder.Get(fromClient).MetagameUser.Register(login, password, username, fromClient);
 
             _serverSend.RegisterResult(fromClient, packetId, result.Success);
         }
@@ -109,25 +109,26 @@ namespace GameServer.NetworkWrappper
 
         private Task JoinGameRoom(Guid fromClient, Packet packet)
         {
-            Console.WriteLine($"user {fromClient} joined to game!");
-            var roomId = packet.ReadGuid();
-            _gameManager.JoinGameRoom(roomId, _clientHolder.Get(fromClient).MetagameUser);
-
+            _log.ZLogError($"user {fromClient} trying to join room, this is obsole func, can't do this!");
             return Task.CompletedTask;
         }
 
-        private async Task CreateGameRoom(Guid fromClient, Packet packet)
+        private Task CreateGameRoom(Guid fromClient, Packet packet)
         {
-            _log.ZLogInformation($"user {fromClient} creating game room!");
+            _log.ZLogError($"{nameof(CreateGameRoom)} is not used now. user {fromClient} creating game room!");
+            return Task.CompletedTask;
+        }
 
-            var mode = packet.ReadString();
-            var title = packet.ReadString();
-            var maxPlayerCount = packet.ReadInt();
+        private Task StartSearchGameRoom(Guid fromClient, Packet packet)
+        {
+            _gameManager.JoinGameRoom(fromClient, _clientHolder.Get(fromClient).MetagameUser);
+            return Task.CompletedTask;
+        }
 
-            var result = await _gameManager.CreateRoom(_clientHolder.Get(fromClient).MetagameUser, mode, title, maxPlayerCount);
-
-            if (!result.Success)
-                _log.ZLogError($"Error! can't create room reson is {result.Message}");
+        private Task CancelSearchGameRoom(Guid fromClient, Packet packet)
+        {
+            _gameManager.LeaveGameRoom(_clientHolder.Get(fromClient).MetagameUser);
+            return Task.CompletedTask;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -140,7 +141,7 @@ namespace GameServer.NetworkWrappper
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _dataReceiver.PacketReceived -= OnPacketReceived;
-         
+
             return Task.CompletedTask;
         }
     }

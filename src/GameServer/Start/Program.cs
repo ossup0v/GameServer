@@ -32,6 +32,7 @@ namespace GameServer
                     .AddSingleton<IServerSendToGameRoom, ServerSendToGameRoom>()
                     .AddSingleton<IClientHolder, ClientHolder>()
                     .AddSingleton<IGameRoomHolder, GameRoomHolder>()
+                    .AddSingleton<IMetagameRoomHolder, MetagameRoomHolder>()
                     .AddSingleton<IUserRepository, InMemoryUserRepository>()
                     .AddSingleton<IGameRoomDataSender, GameRoomNetworkProcessor>()
                     .AddSingleton<IGameRoomDataReceiver, GameRoomNetworkProcessor>()
@@ -43,17 +44,7 @@ namespace GameServer
                     .AddAutoMapper(config =>
                     {
                         config.AddProfile<AutoMapperProfile>();
-                    })
-                    //.Configure<RoomManagerConfig>(x =>
-                    //{
-                    //    x.AvailablePorts = new List<int> { 26952, 26953, 26955, 26956, 26957, 26958, 26959, 26960 };
-                    //})
-                    //.Configure<GameServerConfig>(x =>
-                    //{
-                    //    x.Port = 26954;
-                    //    x.MaxPlayers = 150;
-                    //})
-                    )
+                    }))
                     .ConfigureLogging(logging =>
                     {
                         // optional(MS.E.Logging):clear default providers.

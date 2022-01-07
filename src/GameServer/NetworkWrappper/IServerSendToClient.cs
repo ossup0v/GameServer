@@ -6,8 +6,9 @@ namespace GameServer.NetworkWrappper
     {
         void RegisterResult(Guid fromClient, Guid packetId, bool result);
         void LoginResult(Guid fromClient, Guid packetId, bool result);
-        void RoomPortToConnect(Guid id, int port);
+        void RoomPortToConnect(Guid id, int team, int port);
         void RoomList(Guid userId, IEnumerable<GameRoom> rooms);
         void Welcome(Guid newGuid, string message);
+        void GameRoomSessionEnd(Guid id);
     }
 }
