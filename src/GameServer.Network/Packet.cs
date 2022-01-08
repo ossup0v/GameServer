@@ -37,6 +37,9 @@ namespace GameServer.Network
         botHit,
         ratingTableUpdateKilledBots,
         playerScale,
+        itemSpawnedOnMap,
+        playerBulletAmount,
+        itemOnMapPickup,
 
         //server packets
         roomPortToConnect,
