@@ -80,7 +80,7 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
             }
             catch (Exception ex) { }
 
-            Log.ZLogInformation($"Incoming connection from {client.Client.RemoteEndPoint}...");
+            Log.ZLogInformation($"Incoming connection from {client?.Client?.RemoteEndPoint}...");
 
             if (IsAvailableToConnect)
             {
@@ -88,7 +88,7 @@ namespace GameServer.NetworkWrappper.NetworkProcessors
                 return;
             }
 
-            Log.ZLogError($"{client.Client.RemoteEndPoint} failed to connect: Server full!");
+            Log.ZLogError($"{client?.Client?.RemoteEndPoint} failed to connect: Server full!");
         }
 
         private void ConnectNewUser(TcpClient client)

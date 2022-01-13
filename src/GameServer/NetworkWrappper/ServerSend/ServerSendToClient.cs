@@ -1,4 +1,5 @@
-﻿using GameServer.Metagame.GameRooms;
+﻿using GameServer.Common;
+using GameServer.Metagame.GameRooms;
 using GameServer.Network;
 using GameServer.NetworkWrappper.Holders;
 using GameServer.NetworkWrappper.NetworkProcessors;
@@ -51,15 +52,9 @@ namespace GameServer.NetworkWrappper
 
         public void RoomPortToConnect(Guid toClient, int team, int port)
         {
-
             using (Packet packet = new Packet(ToClient.roomPortToConnect))
             {
-#warning fix it, use config!
-#if DEBUG
-                packet.Write("127.0.0.1");
-#else
-                packet.Write("3.66.29.169");
-#endif
+                packet.Write(Constants.RoomUrlToConntect);
                 packet.Write(team);
                 packet.Write(port);
 

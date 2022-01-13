@@ -40,6 +40,9 @@ namespace GameServer.Network
         itemSpawnedOnMap,
         playerBulletAmount,
         itemOnMapPickup,
+        stageTime,
+        stageChanged,
+        destroyMapItem,
 
         //server packets
         roomPortToConnect,
