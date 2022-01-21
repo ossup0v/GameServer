@@ -28,7 +28,7 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
             _serviceProvider = serviceProvider;
             _sendToClient = serviceProvider.GetRequiredService<IServerSendToClient>();
             _log = serviceProvider.GetRequiredService<ILogger<MetagameGameRoom>>();
-            _gameServerConfig= serviceProvider.GetRequiredService<GameServerConfig>();
+            _gameServerConfig = serviceProvider.GetRequiredService<GameServerConfig>();
         }
 
         public void ConnectPlayers()
@@ -102,6 +102,25 @@ namespace GameServer.Metagame.GameRooms.MetagameRooms
         {
             Users.Remove(user.Id);
             return Task.FromResult(ApiResult.Ok);
+        }
+
+        public PlayerGameRoomData[] GetPlayersData()
+        {
+            var data = new PlayerGameRoomData[Users.Count];
+
+            var i = 0;
+            foreach (var user in Users.Values)
+            {
+                data[i] = new PlayerGameRoomData
+                {
+                    Id = user.Id,
+                    Team = GetUserTeam(i),
+                    UserName = user.Data.Username
+                };
+                i++;
+            }
+
+            return data;
         }
 
         private int GetUserTeam(int index)

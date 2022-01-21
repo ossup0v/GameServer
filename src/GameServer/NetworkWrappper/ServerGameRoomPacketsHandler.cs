@@ -16,6 +16,7 @@ namespace GameServer.NetworkWrappper
         private readonly IServiceProvider _serviceProvider;
         private readonly IServerSendToClient _serverSend;
         private readonly IGameRoomDataReceiver _gameRoomDataReceiver;
+        private readonly IServerSendToGameRoom _serverSendToGameRoom;
         private readonly IGameManager _gameManager;
         private readonly IMetagameRoomHolder _metagameRoomHolder;
         private readonly ILogger<ServerGameRoomPacketsHandler> _log;
@@ -26,6 +27,7 @@ namespace GameServer.NetworkWrappper
         private void InitializeHandlers()
         {
             _handlers.Add((int)ToServerFromGameRoom.gameRoomLaunched, GameRoomLaunched);
+            _handlers.Add((int)ToServerFromGameRoom.gameRoomReadyForConnectPlayers, GameRoomReadyToConnectPlayers);
             _handlers.Add((int)ToServerFromGameRoom.gameSessionEnded, GameRoomEnd);
 
             _log.ZLogInformation("Game room initialized packets.");
@@ -36,6 +38,7 @@ namespace GameServer.NetworkWrappper
             IServiceProvider serviceProvider,
             IServerSendToClient serverSend,
             IGameRoomDataReceiver gameRoomDataReceiver,
+            IServerSendToGameRoom serverSendToGameRoom,
             IGameManager gameManager,
             IMetagameRoomHolder metagameRoomHolder,
             ILogger<ServerGameRoomPacketsHandler> log)
@@ -45,11 +48,12 @@ namespace GameServer.NetworkWrappper
             _serviceProvider = serviceProvider;
             _serverSend = serverSend;
             _gameRoomDataReceiver = gameRoomDataReceiver;
+            _serverSendToGameRoom = serverSendToGameRoom;
             _gameManager = gameManager;
             _metagameRoomHolder = metagameRoomHolder;
             _log = log;
             _handlers = new Dictionary<int, PacketHandler>();
-            
+
             InitializeHandlers();
         }
         public Task StartAsync(CancellationToken cancellationToken)
@@ -78,6 +82,17 @@ namespace GameServer.NetworkWrappper
             }
         }
 
+        private Task GameRoomReadyToConnectPlayers(Guid fromGameRoom, Packet packet)
+        {
+            _log.ZLogInformation("GameRoomReadyToConnectPlayers !");
+
+            var metagameRoomId = packet.ReadGuid();
+
+            _metagameRoomHolder.Get(metagameRoomId).ConnectPlayers();
+
+            return Task.CompletedTask;
+        }
+
         private Task GameRoomLaunched(Guid fromGameRoom, Packet packet)
         {
             _log.ZLogInformation("Game room laucnhed !");
@@ -96,14 +111,19 @@ namespace GameServer.NetworkWrappper
             var maxPlayerCount = packet.ReadInt();
             var gameRoomPort = packet.ReadInt();
 
-            _gameRoomHolder.Get(fromGameRoom).Data = new GameRoomData
+            var metagameRoom = _metagameRoomHolder.Get(metagameRoomId);
+            var gameRoom = _gameRoomHolder.Get(fromGameRoom);
+
+            gameRoom.Data = new GameRoomData
             {
+                //copy link. it's ok
+                Users = metagameRoom.Users,
                 MaxPlayerCount = maxPlayerCount,
                 RoomId = fromGameRoom,
                 Port = gameRoomPort
             };
 
-            _metagameRoomHolder.Get(metagameRoomId).ConnectPlayers();
+            _serverSendToGameRoom.SendPlayersData(fromGameRoom, metagameRoom.GetPlayersData());
 
             return Task.CompletedTask;
         }

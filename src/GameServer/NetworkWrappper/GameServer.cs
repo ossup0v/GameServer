@@ -1,5 +1,4 @@
 ﻿using GameServer.Configs;
-using GameServer.Metagame.GameRooms;
 using GameServer.NetworkWrappper.NetworkProcessors;
 using Microsoft.Extensions.Logging;
 using ZLogger;
@@ -54,6 +53,7 @@ namespace GameServer.NetworkWrappper
         public void Stop()
         {
             _clientsDataReceiver.StopReceive();
+            _gameRoomDataReceiver.StopReceive();
         }
 
         private void OnNewClientAdded(Guid newClientId)
@@ -63,7 +63,7 @@ namespace GameServer.NetworkWrappper
 
         private void OnNewGameRoomAdded(Guid newGameRoomId)
         {
-            _serverSendToGameRoom.GameRoomData(newGameRoomId);
+            _serverSendToGameRoom.SendGameRoomData(newGameRoomId);
         }
     }
 }

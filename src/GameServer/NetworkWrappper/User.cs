@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GameServer.Common;
-using GameServer.DAL;
 using GameServer.DAL.Interfaces;
 using GameServer.Metagame;
 using GameServer.Network;
@@ -12,11 +11,10 @@ using ZLogger;
 
 namespace GameServer.NetworkWrappper
 {
-    public class User : IWithId<Guid>
+    public class User : IWithId<Guid>, IWithNetworkClient
     {
         private readonly ILogger<User> _log;
         private readonly IServiceProvider _serviceProvider;
-
 
         public User(Guid id, ILogger<User> log, IServiceProvider serviceProvider)
         {

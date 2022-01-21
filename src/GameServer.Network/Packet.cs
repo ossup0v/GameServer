@@ -66,6 +66,7 @@ namespace GameServer.Network
 
         //server packets
         gameRoomData,
+        playersData
     }
 
     public enum ToServerFromClient
@@ -83,6 +84,7 @@ namespace GameServer.Network
     public enum ToServerFromGameRoom
     {
         gameRoomLaunched = 1,
+        gameRoomReadyForConnectPlayers,
         gameSessionEnded 
     }
 

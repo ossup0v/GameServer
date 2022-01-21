@@ -1,12 +1,13 @@
 ﻿using GameServer.Common;
 using GameServer.Network;
+using GameServer.NetworkWrappper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Sockets;
 
 namespace GameServer.Metagame.GameRooms
 {
-    public class GameRoom : IWithId<Guid>
+    public class GameRoom : IWithId<Guid>, IWithNetworkClient
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<GameRoom> _log;
